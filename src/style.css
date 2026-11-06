@@ -1,14 +1,12 @@
-@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
-
-:root { color-scheme: dark; font-family: 'Press Start 2P', monospace; background: #101d30; color: #fff; }
+:root { color-scheme: dark; font-family: system-ui, -apple-system, "Segoe UI", sans-serif; background: #80523b; color: #fff; }
 * { box-sizing: border-box; }
 html, body, #app { width: 100%; height: 100%; margin: 0; overflow: hidden; }
 body { touch-action: none; user-select: none; -webkit-user-select: none; }
 #app { display: grid; place-items: stretch; padding: max(0px, env(safe-area-inset-top)) 0 max(24px, env(safe-area-inset-bottom)); background: #80523b; }
 .game-shell { width: 100%; height: 100%; max-height: 100dvh; display: flex; flex-direction: column; align-items: center; justify-content: space-between; gap: 3px; padding: 0 0 3px; }
 .screen-frame { width: 100%; flex: 1 1 auto; min-height: 0; display: flex; align-items: center; justify-content: center; background: #80523b; padding: 0; overflow: hidden; }
-canvas { display: block; width: 100%; height: 100%; max-height: 100%; aspect-ratio: 16 / 9; object-fit: fill; image-rendering: pixelated; background: #80523b; border: 0; }
-.controls { width: 100%; flex: 0 0 auto; display: flex; align-items: center; justify-content: space-between; padding: 0 clamp(14px, 5vw, 48px); }
+canvas { display: block; width: 100%; height: 100%; max-height: 100%; aspect-ratio: 16 / 9; object-fit: fill; image-rendering: auto; background: #80523b; border: 0; }
+.controls { width: 100%; flex: 0 0 auto; display: flex; align-items: center; justify-content: space-between; padding: 0 clamp(14px, 5vw, 48px); margin-bottom: 19px; }
 .direction-pad { display: flex; gap: 10px; }
 .control { border: 0; color: #f0f2f5; background: linear-gradient(#657080, #313a49); box-shadow: 0 6px 0 #171d27, inset 0 2px 0 #ffffff33; font: inherit; cursor: pointer; touch-action: none; -webkit-tap-highlight-color: transparent; }
 .control:active, .control.pressed { transform: translateY(4px); box-shadow: 0 2px 0 #171d27, inset 0 2px 0 #ffffff33; }

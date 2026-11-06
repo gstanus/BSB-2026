@@ -29,13 +29,19 @@ let lastTime = 0;
 let popupReturn: 'map' | 'level' = 'map';
 let mapRepeatMs = 0;
 
-// Small drawing helpers keep every scene crisp and deliberately low-resolution.
+// Cartoon drawing helpers use smooth geometry and high-contrast outlines for clear shapes.
 function rect(x: number, y: number, w: number, h: number, color: string): void {
-  ctx.fillStyle = color; ctx.fillRect(Math.round(x), Math.round(y), Math.round(w), Math.round(h));
+  ctx.fillStyle = color; ctx.fillRect(x, y, w, h);
+}
+function ellipse(x: number, y: number, rx: number, ry: number, color: string, stroke = '#573d35'): void {
+  ctx.beginPath(); ctx.ellipse(x, y, rx, ry, 0, 0, Math.PI * 2); ctx.fillStyle = color; ctx.fill(); ctx.lineWidth = 2; ctx.strokeStyle = stroke; ctx.stroke();
+}
+function roundBox(x: number, y: number, w: number, h: number, color: string, radius = 8, stroke = '#573d35'): void {
+  ctx.beginPath(); ctx.roundRect(x, y, w, h, radius); ctx.fillStyle = color; ctx.fill(); ctx.lineWidth = 2; ctx.strokeStyle = stroke; ctx.stroke();
 }
 function text(value: string, x: number, y: number, size = 8, color = '#fff', align: CanvasTextAlign = 'center'): void {
-  ctx.font = `bold ${size}px "Press Start 2P", monospace`; ctx.textAlign = align; ctx.textBaseline = 'middle';
-  ctx.lineWidth = size > 9 ? 3 : 2; ctx.strokeStyle = '#17233a'; ctx.strokeText(value, x, y); ctx.fillStyle = color; ctx.fillText(value, x, y);
+  ctx.font = `700 ${size}px system-ui, -apple-system, "Segoe UI", sans-serif`; ctx.textAlign = align; ctx.textBaseline = 'middle';
+  ctx.lineJoin = 'round'; ctx.lineWidth = 3; ctx.strokeStyle = '#392d2a'; ctx.strokeText(value, x, y); ctx.fillStyle = color; ctx.fillText(value, x, y);
 }
 function wrap(value: string, maxChars: number): string[] {
   const words = value.split(' '); const lines: string[] = []; let line = '';
@@ -43,28 +49,36 @@ function wrap(value: string, maxChars: number): string[] {
   if (line) lines.push(line); return lines;
 }
 function background(): void {
-  rect(0, 0, WIDTH, HEIGHT, '#78cbe5');
-  // Blocky clouds and distant hills establish the bright storybook platform-game world.
-  for (const [x, y] of [[42, 36], [235, 26], [390, 50]]) { rect(x, y, 39, 9, '#f7f4d8'); rect(x + 8, y - 7, 20, 8, '#f7f4d8'); }
-  rect(0, 170, WIDTH, 28, '#62b75b'); rect(0, 194, WIDTH, 76, '#e4c37b');
-  rect(0, 194, WIDTH, 5, '#408b4b');
-  for (let x = 8; x < WIDTH; x += 30) { rect(x, 213 + ((x / 30) % 2) * 10, 10, 9, '#c59d59'); rect(x + 14, 230, 8, 8, '#c59d59'); }
+  const sky = ctx.createLinearGradient(0, 0, 0, HEIGHT); sky.addColorStop(0, '#8bd5e9'); sky.addColorStop(1, '#e4f0cc');
+  rect(0, 0, WIDTH, HEIGHT, '#8bd5e9'); ctx.fillStyle = sky; ctx.fillRect(0, 0, WIDTH, HEIGHT);
+  for (const [x, y] of [[42, 36], [235, 26], [390, 50]]) { ellipse(x, y, 24, 10, '#fffdf2', '#fffdf2'); ellipse(x + 14, y - 5, 18, 11, '#fffdf2', '#fffdf2'); }
+  rect(0, 170, WIDTH, 28, '#67ae57'); rect(0, 194, WIDTH, 76, '#e2c787');
+  roundBox(0, 188, WIDTH, 18, '#4d914c', 7, '#4d914c');
+  for (let x = 8; x < WIDTH; x += 30) { ellipse(x + 7, 222 + ((x / 30) % 2) * 10, 5, 4, '#bd8d54', '#bd8d54'); ellipse(x + 19, 238, 4, 3, '#bd8d54', '#bd8d54'); }
 }
 function drawFootballer(x: number, y: number, scale = 1): void {
-  ctx.save(); ctx.translate(Math.round(x), Math.round(y)); ctx.scale(scale, scale);
-  rect(3, 1, 12, 7, '#e9a33d'); rect(1, 4, 16, 4, '#e9a33d'); rect(4, 8, 10, 3, '#f3d2a0');
-  rect(3, 11, 12, 9, '#1681a5'); rect(1, 12, 4, 6, '#e9a33d'); rect(13, 12, 4, 6, '#e9a33d');
-  rect(4, 20, 4, 5, '#29364b'); rect(11, 20, 4, 5, '#29364b'); rect(3, 25, 6, 2, '#f5f1dc'); rect(10, 25, 7, 2, '#f5f1dc');
-  rect(12, 5, 2, 2, '#202532'); ctx.restore();
+  ctx.save(); ctx.translate(x, y); ctx.scale(scale, scale);
+  ellipse(9, 25, 10, 3, '#5b4939', '#5b4939');
+  roundBox(2, 12, 15, 12, '#1882a7', 5); ellipse(2, 17, 3, 7, '#e8a145'); ellipse(17, 17, 3, 7, '#e8a145');
+  roundBox(4, 22, 5, 7, '#334154', 2); roundBox(12, 22, 5, 7, '#334154', 2); roundBox(2, 27, 8, 3, '#fff4dc', 2); roundBox(11, 27, 8, 3, '#fff4dc', 2);
+  ellipse(9, 9, 8, 8, '#efbd83'); roundBox(1, 3, 16, 7, '#e79532', 4); rect(4, 9, 11, 2, '#70442c');
+  ellipse(12, 8, 1.4, 1.8, '#292735', '#292735'); ctx.restore();
 }
 function drawBoss(): void {
   // Original helmeted turtle-like rival; the shirt label is a gameplay detail from the brief.
   const x = boss.x, y = boss.y;
-  rect(x + 7, y, 30, 9, '#e5b653'); rect(x + 3, y + 6, 38, 8, '#d89337'); rect(x + 10, y + 13, 25, 11, '#f2d49a');
-  rect(x + 5, y + 24, 34, 19, '#47c8a5'); rect(x + 7, y + 25, 8, 6, '#ef6394'); rect(x + 17, y + 29, 9, 6, '#f5dc55'); rect(x + 29, y + 25, 8, 7, '#9a7be6');
-  rect(x + 21, y + 26, 4, 13, '#f4eee2'); rect(x + 21, y + 36, 8, 5, '#f4eee2');
-  text('LIAM', x + 22, y + 34, 6, '#17233a'); rect(x + 8, y + 42, 12, 4, '#745537'); rect(x + 25, y + 42, 12, 4, '#745537');
-  rect(x + 29, y + 17, 3, 3, '#202532');
+  ellipse(x + 22, y + 43, 21, 5, '#5a4937', '#5a4937');
+  ellipse(x + 22, y + 16, 21, 16, '#7baa45');
+  roundBox(x + 3, y + 2, 39, 13, '#e9a83d', 7); roundBox(x + 6, y + 5, 34, 10, '#c67a29', 6);
+  ellipse(x + 22, y + 19, 14, 11, '#f1cf9b');
+  roundBox(x + 5, y + 26, 34, 19, '#48cba8', 6);
+  ellipse(x + 9, y + 31, 4, 3, '#ee6690', '#ee6690'); ellipse(x + 35, y + 38, 4, 3, '#9679e4', '#9679e4');
+  ellipse(x + 17, y + 36, 4, 3, '#f3d34e', '#f3d34e');
+  // A solid white chest patch makes the opponent's name readable over the tie-dye pattern.
+  roundBox(x + 13, y + 31, 20, 11, '#fffdf2', 3, '#287e72');
+  text('LIAM', x + 23, y + 36.5, 8, '#183b4a');
+  roundBox(x + 8, y + 42, 13, 5, '#745537', 2); roundBox(x + 25, y + 42, 13, 5, '#745537', 2);
+  ellipse(x + 30, y + 19, 2, 2, '#292735', '#292735');
 }
 function drawTitle(): void {
   background();
@@ -93,21 +107,22 @@ function drawAutumnMapBackground(): void {
   rect(0, 146, WIDTH, 124, '#80523b');
   // Tree crowns frame the route like an autumn park seen from above.
   for (const [x, y, c] of [[18, 59, '#bd4935'], [72, 110, '#e6a83b'], [155, 61, '#a84232'], [273, 104, '#dc8e34'], [348, 59, '#a84232'], [459, 106, '#d4a13b'], [32, 231, '#c14c31'], [174, 222, '#dc9636'], [337, 229, '#b94632'], [450, 224, '#e5ab3d']] as Array<[number, number, string]>) {
-    rect(x - 12, y - 8, 24, 17, c); rect(x - 8, y - 13, 16, 27, c); rect(x - 3, y + 4, 6, 10, '#684630');
+    roundBox(x - 3, y - 3, 6, 19, '#684630', 3, '#684630');
+    ellipse(x, y, 16, 13, c); ellipse(x - 7, y - 4, 9, 9, c, c); ellipse(x + 7, y - 3, 9, 10, c, c);
   }
   // Cream walking path winds across the autumn ground beneath the signposts.
-  rect(0, 155, WIDTH, 43, '#e2bd78'); rect(0, 164, WIDTH, 25, '#f0d49a');
+  ctx.beginPath(); ctx.moveTo(0, 165); ctx.bezierCurveTo(95, 148, 175, 197, 250, 174); ctx.bezierCurveTo(340, 145, 402, 188, 480, 164); ctx.lineTo(480, 198); ctx.bezierCurveTo(390, 218, 322, 177, 246, 203); ctx.bezierCurveTo(157, 231, 90, 188, 0, 213); ctx.closePath(); ctx.fillStyle = '#f0d49a'; ctx.fill();
   rect(0, 204, WIDTH, 37, '#d5aa69');
-  for (let x = 14; x < WIDTH; x += 31) { rect(x, 171 + (x % 3) * 2, 3, 3, '#b47a49'); }
-  // Skyline landmarks appear as distant background landmarks, rather than props beside the path.
-  rect(29, 63, 46, 31, '#dbc99e'); rect(36, 57, 32, 7, '#e9d9b7'); rect(42, 49, 20, 9, '#d4be8b');
-  rect(213, 53, 54, 42, '#ded1b7'); rect(220, 43, 40, 11, '#d2c2a0'); rect(228, 27, 24, 17, '#e6dac2'); rect(235, 18, 10, 10, '#c7aa64');
-  rect(390, 72, 54, 23, '#d8d1c2'); rect(396, 66, 42, 7, '#e9e2d6');
-  rect(413, 55, 8, 12, '#93765a'); rect(411, 49, 12, 7, '#b39469'); rect(415, 41, 3, 9, '#b39469');
+  for (let x = 14; x < WIDTH; x += 31) ellipse(x, 176 + (x % 3) * 2, 2, 2, '#b47a49', '#b47a49');
+  // Clear skyline silhouettes: the Liberty Bell, City Hall's clock tower, and museum steps with a raised-fist statue.
+  roundBox(39, 65, 30, 25, '#dfc584', 7); ellipse(54, 64, 20, 5, '#f0d79a'); roundBox(48, 55, 12, 16, '#d0ad60', 4); ellipse(54, 75, 10, 13, '#d7ad55'); rect(53, 72, 2, 14, '#725b38');
+  roundBox(218, 59, 44, 30, '#e6ddc9', 5); roundBox(225, 48, 30, 15, '#ded3bb', 4); roundBox(230, 34, 20, 18, '#e7dfcf', 5); ellipse(240, 43, 7, 7, '#7698a1'); roundBox(235, 22, 10, 15, '#d5c49c', 4); ellipse(240, 19, 5, 4, '#c49a47');
+  roundBox(393, 77, 45, 12, '#ddd7cb', 3); roundBox(399, 68, 39, 9, '#e8e3d9', 3); roundBox(405, 60, 32, 8, '#d3cec4', 3); ellipse(420, 55, 5, 7, '#aa8058'); roundBox(418, 44, 5, 13, '#aa8058', 2); ellipse(420, 42, 3, 4, '#aa8058');
+  text('LIBERTY BELL', 54, 97, 7, '#fff8e9'); text('CITY HALL', 240, 97, 7, '#fff8e9'); text('ROCKY STEPS', 416, 97, 7, '#fff8e9');
 }
 function drawSign(index: number, x: number): void {
-  rect(x - 2, 154, 4, 31, '#78482d'); rect(x - 25, 139, 50, 20, '#ac6740'); rect(x - 22, 142, 44, 14, '#d99056');
-  text(index < 3 ? ['BELL', 'CITY HALL', 'ROCKY'][index] : 'LEVEL', x, 150, index === 1 ? 4 : 5, '#fff2cc');
+  roundBox(x - 3, 153, 6, 34, '#78482d', 3); roundBox(x - 35, 134, 70, 27, '#ac6740', 7); roundBox(x - 30, 138, 60, 19, '#d99056', 5, '#9b5b38');
+  text(index < 3 ? ['READ 1', 'READ 2', 'READ 3'][index] : 'PLAY', x, 148, 11, '#fff8e9');
 }
 function drawMap(): void {
   drawAutumnMapBackground();
@@ -116,7 +131,7 @@ function drawMap(): void {
   for (let i = 0; i < 3; i++) drawSign(i, stopX[i]);
   drawSign(3, stopX[3]); rect(398, 122, 44, 28, '#d4e1df'); rect(405, 128, 30, 15, '#88b7bc'); rect(409, 132, 22, 11, '#172b46');
   // The four map positions are one horizontal navigation row for the two arrow controls.
-  drawFootballer(stopX[selection] - 9, 151, 1.15);
+  drawFootballer(stopX[selection] - 29, 170, 1.15);
   for (let i = 0; i < 4; i++) if (i === selection) { rect(stopX[i] - 4, 185, 3, 3, '#ffe35b'); rect(stopX[i] + 1, 185, 3, 3, '#ffe35b'); }
   text('◀  ▶ MOVE     ● SELECT', 240, 254, 8, '#fff');
 }
