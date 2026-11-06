@@ -21,7 +21,7 @@ const stopX = [105, 210, 315, 420];
 let scene: Scene = 'title';
 let selection = 0;
 let held = new Set<Control>();
-let player: Actor = { x: 58, y: 192, vx: 0, vy: 0, w: 18, h: 27 };
+let player: Actor = { x: 58, y: 192, vx: 0, vy: 0, w: 24, h: 38 };
 let boss: Actor = { x: 365, y: 178, vx: -1.15, vy: 0, w: 44, h: 46 };
 let bossHits = 0;
 let jumpQueued = false;
@@ -58,11 +58,25 @@ function background(): void {
 }
 function drawFootballer(x: number, y: number, scale = 1): void {
   ctx.save(); ctx.translate(x, y); ctx.scale(scale, scale);
-  ellipse(9, 25, 10, 3, '#5b4939', '#5b4939');
-  roundBox(2, 12, 15, 12, '#1882a7', 5); ellipse(2, 17, 3, 7, '#e8a145'); ellipse(17, 17, 3, 7, '#e8a145');
-  roundBox(4, 22, 5, 7, '#334154', 2); roundBox(12, 22, 5, 7, '#334154', 2); roundBox(2, 27, 8, 3, '#fff4dc', 2); roundBox(11, 27, 8, 3, '#fff4dc', 2);
-  ellipse(9, 9, 8, 8, '#efbd83'); roundBox(1, 3, 16, 7, '#e79532', 4); rect(4, 9, 11, 2, '#70442c');
-  ellipse(12, 8, 1.4, 1.8, '#292735', '#292735'); ctx.restore();
+  ellipse(12, 37, 12, 3, '#5b4939', '#5b4939');
+  // White pants and blue socks/shoes follow the reference uniform silhouette.
+  roundBox(4, 25, 8, 11, '#f7f6ed', 2); roundBox(14, 25, 8, 11, '#f7f6ed', 2);
+  roundBox(6, 34, 5, 4, '#1765b3', 1); roundBox(16, 34, 5, 4, '#1765b3', 1);
+  roundBox(2, 37, 10, 3, '#fffdf5', 1); roundBox(14, 37, 10, 3, '#fffdf5', 1);
+  // Blue jersey, padded shoulders, and bare forearms.
+  roundBox(3, 14, 18, 14, '#1765b3', 5); ellipse(3, 19, 4, 6, '#1765b3'); ellipse(21, 19, 4, 6, '#1765b3');
+  roundBox(0, 19, 4, 10, '#e9bd91', 2); roundBox(20, 19, 4, 10, '#e9bd91', 2);
+  roundBox(0, 27, 4, 4, '#fffdf5', 1); roundBox(20, 27, 4, 4, '#fffdf5', 1);
+  text('80', 12, 22, 8, '#d7ecff');
+  // White face mask over a blue helmet keeps the player's face and position easy to read.
+  ellipse(12, 10, 9, 9, '#efc396');
+  roundBox(2, 3, 20, 10, '#1765b3', 5, '#114b88');
+  roundBox(0, 10, 20, 4, '#fffdf5', 2, '#d7e3ec');
+  roundBox(1, 12, 3, 8, '#fffdf5', 1); roundBox(5, 14, 2, 6, '#fffdf5', 1); roundBox(10, 14, 2, 6, '#fffdf5', 1); roundBox(15, 14, 2, 6, '#fffdf5', 1);
+  rect(7, 8, 2, 2, '#2a2927'); rect(15, 8, 2, 2, '#2a2927');
+  // A pale helmet stripe and gloss give the blue shell a dimensional sports-helmet look.
+  ctx.beginPath(); ctx.moveTo(9, 4); ctx.lineTo(13, 4); ctx.lineTo(17, 8); ctx.lineTo(13, 8); ctx.closePath(); ctx.fillStyle = '#b9dcff'; ctx.fill();
+  ctx.restore();
 }
 function drawBoss(): void {
   // Draw Liam as a friendly cartoon opponent inspired by the supplied portrait.
@@ -79,8 +93,8 @@ function drawBoss(): void {
   ctx.restore();
   // Orange tee and a bright label panel keep the requested name easy to read.
   roundBox(x + 14, y + 28, 17, 15, '#ec824e', 3, '#b75736');
-  roundBox(x + 9, y + 33, 27, 11, '#fffdf2', 3, '#5b665c');
-  text('LIAM', x + 22.5, y + 38.5, 10, '#253b3b');
+  roundBox(x + 9, y + 33, 27, 11, '#365858', 3, '#263c3c');
+  text('LIAM', x + 22.5, y + 38.5, 10, '#ffffff');
   // Face, ears, curly dark hair, eyes, and a broad friendly smile.
   ellipse(x + 22, y + 18, 13, 13, '#edbd91');
   ellipse(x + 9, y + 18, 3, 4, '#e2aa80'); ellipse(x + 35, y + 18, 3, 4, '#e2aa80');
@@ -227,7 +241,7 @@ function setHint(): void {
   hint.textContent = scene === 'title' ? 'Tap the button to begin' : scene === 'map' ? 'Use arrows to choose a stop; button to select' : scene === 'message' ? 'Tap the button to close' : scene === 'level' ? 'Hold left/right to move; tap button to jump' : scene === 'win' ? 'Tap the button to return to the map' : 'Game over — returning to map';
 }
 function startLevel(): void {
-  scene = 'level'; bossHits = 0; player = { x: 72, y: 135, vx: 0, vy: 0, w: 18, h: 27 }; boss = { x: 365, y: 130, vx: -1.15, vy: 0, w: 44, h: 46 };
+  scene = 'level'; bossHits = 0; player = { x: 72, y: 124, vx: 0, vy: 0, w: 24, h: 38 }; boss = { x: 365, y: 130, vx: -1.15, vy: 0, w: 44, h: 46 };
 }
 function action(): void {
   if (scene === 'title') scene = 'map';
