@@ -84,7 +84,7 @@ function drawTitle(): void {
   background();
   rect(38, 56, 404, 88, '#183d70'); rect(43, 61, 394, 78, '#f3c84b');
   text('BROAD STREET', 240, 87, 17, '#fff8d8'); text('BOWL 2026', 240, 117, 19, '#fff8d8');
-  text('A PHILLY FOOTBALL ADVENTURE', 240, 164, 7, '#173d52');
+  text('Geri vs Liam for the ultimate Philadelphia glory', 240, 164, 13, '#ffffff');
   // A pixel football field motif anchors the opening card.
   rect(115, 209, 250, 35, '#27834b'); for (let x = 135; x < 350; x += 42) rect(x, 210, 2, 33, '#b9e28d');
   text('TAP ● TO START', 240, 252, 8, '#fff');
@@ -121,10 +121,52 @@ function drawAutumnMapBackground(): void {
   // A pale dirt trail bends through the orchard and connects the three story markers to the level.
   ctx.beginPath(); ctx.moveTo(-8, 165); ctx.bezierCurveTo(85, 143, 145, 206, 229, 179); ctx.bezierCurveTo(318, 150, 392, 196, 489, 163); ctx.lineTo(489, 202); ctx.bezierCurveTo(392, 226, 318, 180, 233, 209); ctx.bezierCurveTo(143, 238, 85, 178, -8, 213); ctx.closePath(); ctx.fillStyle = '#d7b77b'; ctx.fill();
   ctx.beginPath(); ctx.moveTo(-8, 174); ctx.bezierCurveTo(86, 154, 145, 214, 230, 188); ctx.bezierCurveTo(318, 160, 392, 204, 489, 174); ctx.lineWidth = 2; ctx.strokeStyle = '#eed8a3'; ctx.stroke();
-  // Unlabelled landmarks sit in the background: bell, clock-tower city hall, and museum steps/statue.
-  roundBox(40, 62, 30, 28, '#dfc584', 8); ellipse(55, 62, 20, 5, '#f0d79a'); roundBox(49, 53, 12, 16, '#d0ad60', 4); ellipse(55, 75, 10, 13, '#d7ad55'); rect(54, 72, 2, 14, '#725b38');
-  roundBox(218, 59, 44, 30, '#e6ddc9', 5); roundBox(225, 48, 30, 15, '#ded3bb', 4); roundBox(230, 34, 20, 18, '#e7dfcf', 5); ellipse(240, 43, 7, 7, '#7698a1'); roundBox(235, 22, 10, 15, '#d5c49c', 4); ellipse(240, 19, 5, 4, '#c49a47');
-  roundBox(393, 77, 45, 12, '#ddd7cb', 3); roundBox(399, 68, 39, 9, '#e8e3d9', 3); roundBox(405, 60, 32, 8, '#d3cec4', 3); ellipse(420, 55, 5, 7, '#aa8058'); roundBox(418, 44, 5, 13, '#aa8058', 2); ellipse(420, 42, 3, 4, '#aa8058');
+  // Draw the Liberty Bell with a wide wooden yoke, bronze body, and its famous crack.
+  ctx.save(); ctx.translate(55, 15); ctx.scale(0.82, 0.82);
+  // A broad, dark timber mount and two angled straps suspend the bell.
+  roundBox(-48, 15, 96, 24, '#45312e', 5, '#302422');
+  roundBox(-44, 8, 7, 9, '#68452a', 2); roundBox(-20, 8, 7, 9, '#68452a', 2); roundBox(14, 8, 7, 9, '#68452a', 2); roundBox(38, 8, 7, 9, '#68452a', 2);
+  ctx.lineWidth = 5; ctx.strokeStyle = '#76542d'; ctx.beginPath(); ctx.moveTo(-26, 12); ctx.lineTo(-11, 52); ctx.moveTo(26, 12); ctx.lineTo(11, 52); ctx.stroke();
+  // The bell widens toward its flared lip; layered strokes give it a clear metal edge.
+  ctx.beginPath(); ctx.moveTo(-10, 39); ctx.lineTo(-13, 52); ctx.bezierCurveTo(-15, 69, -28, 82, -40, 91); ctx.quadraticCurveTo(0, 101, 40, 91); ctx.bezierCurveTo(28, 82, 15, 69, 13, 52); ctx.lineTo(10, 39); ctx.closePath();
+  ctx.fillStyle = '#9b6b32'; ctx.fill(); ctx.lineWidth = 3; ctx.strokeStyle = '#4f3926'; ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(-13, 59); ctx.quadraticCurveTo(0, 65, 13, 59); ctx.moveTo(-31, 86); ctx.quadraticCurveTo(0, 94, 31, 86); ctx.strokeStyle = '#c3944a'; ctx.lineWidth = 2; ctx.stroke();
+  // A dark, irregular line descends from the bell's shoulder to its broken rim.
+  ctx.beginPath(); ctx.moveTo(1, 56); ctx.lineTo(-2, 65); ctx.lineTo(2, 72); ctx.lineTo(-1, 79); ctx.lineTo(4, 86); ctx.lineTo(1, 94); ctx.strokeStyle = '#382a22'; ctx.lineWidth = 2.5; ctx.stroke();
+  // Clapper and the small bracket beneath the flared edge.
+  ctx.beginPath(); ctx.moveTo(0, 48); ctx.lineTo(0, 70); ctx.strokeStyle = '#483326'; ctx.lineWidth = 3; ctx.stroke(); ellipse(0, 72, 3, 4, '#493328');
+  ctx.restore();
+  // Philadelphia City Hall: a symmetrical red-brick base with a pale clock tower and dome.
+  roundBox(205, 69, 70, 19, '#9d4f3c', 2, '#704034');
+  roundBox(211, 64, 58, 7, '#c18d62', 2, '#704034');
+  // Repeating pale windows make the broad lower facade read as a civic building.
+  for (const wx of [211, 222, 233, 247, 258, 269]) {
+    roundBox(wx, 73, 5, 8, '#dce5df', 1, '#73493d');
+    rect(wx + 2, 73, 1, 8, '#91b7c2'); rect(wx, 77, 5, 1, '#fff4dc');
+  }
+  // Central clock tower steps inward above the main roofline.
+  roundBox(226, 48, 28, 18, '#eee7d7', 2, '#9b8063');
+  for (const tx of [228, 234, 240, 246, 252]) rect(tx, 48, 1, 4, '#b5aa98');
+  roundBox(230, 35, 20, 14, '#f4eee1', 2, '#9b8063');
+  ellipse(240, 42, 6, 6, '#a9d5df', '#8d7259');
+  ctx.beginPath(); ctx.moveTo(240, 42); ctx.lineTo(240, 38); ctx.moveTo(240, 42); ctx.lineTo(243, 43); ctx.strokeStyle = '#314a50'; ctx.lineWidth = 1; ctx.stroke();
+  // Open belfry and rounded copper dome with a small spire.
+  roundBox(233, 26, 14, 10, '#eee7d7', 4, '#9b8063');
+  roundBox(235, 27, 3, 8, '#8db8c1', 2, '#8db8c1'); roundBox(242, 27, 3, 8, '#8db8c1', 2, '#8db8c1');
+  ctx.beginPath(); ctx.moveTo(232, 27); ctx.quadraticCurveTo(232, 18, 240, 17); ctx.quadraticCurveTo(248, 18, 248, 27); ctx.closePath(); ctx.fillStyle = '#a9643e'; ctx.fill(); ctx.lineWidth = 2; ctx.strokeStyle = '#76513c'; ctx.stroke();
+  roundBox(239, 12, 2, 7, '#bd9e65', 1, '#8b714b'); ellipse(240, 11, 1.5, 2.5, '#e6d5a2', '#8b714b');
+  // Rocky-style bronze runner on the museum steps, posed with both fists raised overhead.
+  roundBox(393, 86, 54, 5, '#cfc8b8', 2); roundBox(398, 81, 44, 5, '#e3ddce', 2); roundBox(403, 76, 34, 5, '#d4cec1', 2);
+  ellipse(420, 72, 7, 10, '#514c43'); // shorts and legs
+  roundBox(414, 78, 5, 9, '#514c43', 2); roundBox(422, 78, 5, 9, '#514c43', 2);
+  roundBox(412, 84, 7, 3, '#423e38', 2); roundBox(422, 84, 7, 3, '#423e38', 2);
+  ellipse(420, 58, 7, 11, '#70695d'); // chest and waist
+  // Arms angle outward then upward, with raised fists clearly separated from the head.
+  ctx.lineCap = 'round'; ctx.lineWidth = 5; ctx.strokeStyle = '#70695d'; ctx.beginPath();
+  ctx.moveTo(415, 55); ctx.lineTo(409, 49); ctx.lineTo(406, 40); ctx.moveTo(425, 55); ctx.lineTo(431, 49); ctx.lineTo(434, 40); ctx.stroke();
+  ellipse(406, 37, 3.5, 4, '#514c43'); ellipse(434, 37, 3.5, 4, '#514c43');
+  ellipse(420, 45, 5, 6, '#514c43'); // head
+  ctx.beginPath(); ctx.moveTo(416, 43); ctx.quadraticCurveTo(420, 39, 424, 43); ctx.strokeStyle = '#332f2b'; ctx.lineWidth = 2; ctx.stroke();
 }
 function drawSign(index: number, x: number): void {
   // Sign boards intentionally contain no lettering, as requested.
