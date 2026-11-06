@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+    <meta name="theme-color" content="#172b46" />
+    <title>Broad Street Bowl 2026</title>
+  </head>
+  <body>
+    <main id="app" aria-label="Broad Street Bowl 2026 game">
+      <section class="game-shell">
+        <div class="screen-frame"><canvas id="game" aria-label="Game screen"></canvas></div>
+        <nav class="controls" aria-label="Game controls">
+          <div class="direction-pad">
+            <button class="control arrow" id="left" aria-label="Move left">◀</button>
+            <button class="control arrow" id="right" aria-label="Move right">▶</button>
+          </div>
+          <button class="control select" id="action" aria-label="Select or jump">●</button>
+        </nav>
+        <p class="hint" id="hint">Tap the button to begin</p>
+      </section>
+    </main>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
