@@ -75,8 +75,8 @@ function drawBoss(): void {
   ellipse(x + 9, y + 31, 4, 3, '#ee6690', '#ee6690'); ellipse(x + 35, y + 38, 4, 3, '#9679e4', '#9679e4');
   ellipse(x + 17, y + 36, 4, 3, '#f3d34e', '#f3d34e');
   // A solid white chest patch makes the opponent's name readable over the tie-dye pattern.
-  roundBox(x + 13, y + 31, 20, 11, '#fffdf2', 3, '#287e72');
-  text('LIAM', x + 23, y + 36.5, 8, '#183b4a');
+  roundBox(x + 10, y + 30, 26, 13, '#fffdf2', 3, '#287e72');
+  text('LIAM', x + 23, y + 36.5, 10, '#183b4a');
   roundBox(x + 8, y + 42, 13, 5, '#745537', 2); roundBox(x + 25, y + 42, 13, 5, '#745537', 2);
   ellipse(x + 30, y + 19, 2, 2, '#292735', '#292735');
 }
@@ -101,35 +101,45 @@ function drawLandmark(index: number, x: number): void {
   }
 }
 function drawAutumnMapBackground(): void {
-  // The menu is a bird's-eye view: landmarks sit in the distance behind a park-like trail.
-  rect(0, 0, WIDTH, HEIGHT, '#bd7543');
-  rect(0, 36, WIDTH, 108, '#d99550');
-  rect(0, 146, WIDTH, 124, '#80523b');
-  // Tree crowns frame the route like an autumn park seen from above.
-  for (const [x, y, c] of [[18, 59, '#bd4935'], [72, 110, '#e6a83b'], [155, 61, '#a84232'], [273, 104, '#dc8e34'], [348, 59, '#a84232'], [459, 106, '#d4a13b'], [32, 231, '#c14c31'], [174, 222, '#dc9636'], [337, 229, '#b94632'], [450, 224, '#e5ab3d']] as Array<[number, number, string]>) {
-    roundBox(x - 3, y - 3, 6, 19, '#684630', 3, '#684630');
-    ellipse(x, y, 16, 13, c); ellipse(x - 7, y - 4, 9, 9, c, c); ellipse(x + 7, y - 3, 9, 10, c, c);
+  // Cozy top-down valley map with orchard plots, leafy canopies, and a winding farm path.
+  const grass = ctx.createLinearGradient(0, 0, 0, HEIGHT); grass.addColorStop(0, '#9acb6b'); grass.addColorStop(1, '#5d9d53');
+  ctx.fillStyle = grass; ctx.fillRect(0, 0, WIDTH, HEIGHT);
+  for (let y = 0; y < HEIGHT; y += 18) for (let x = 0; x < WIDTH; x += 24) {
+    if ((x / 24 + y / 18) % 3 === 0) roundBox(x + 3, y + 5, 5, 3, '#b6d982', 2, '#b6d982');
   }
-  // Cream walking path winds across the autumn ground beneath the signposts.
-  ctx.beginPath(); ctx.moveTo(0, 165); ctx.bezierCurveTo(95, 148, 175, 197, 250, 174); ctx.bezierCurveTo(340, 145, 402, 188, 480, 164); ctx.lineTo(480, 198); ctx.bezierCurveTo(390, 218, 322, 177, 246, 203); ctx.bezierCurveTo(157, 231, 90, 188, 0, 213); ctx.closePath(); ctx.fillStyle = '#f0d49a'; ctx.fill();
-  rect(0, 204, WIDTH, 37, '#d5aa69');
-  for (let x = 14; x < WIDTH; x += 31) ellipse(x, 176 + (x % 3) * 2, 2, 2, '#b47a49', '#b47a49');
-  // Clear skyline silhouettes: the Liberty Bell, City Hall's clock tower, and museum steps with a raised-fist statue.
-  roundBox(39, 65, 30, 25, '#dfc584', 7); ellipse(54, 64, 20, 5, '#f0d79a'); roundBox(48, 55, 12, 16, '#d0ad60', 4); ellipse(54, 75, 10, 13, '#d7ad55'); rect(53, 72, 2, 14, '#725b38');
+  // Autumn orchard trees have visible trunks, layered crowns, and bright fallen leaves.
+  for (const [x, y, c] of [[18, 59, '#bd4935'], [72, 110, '#e6a83b'], [155, 61, '#a84232'], [273, 104, '#dc8e34'], [348, 59, '#a84232'], [459, 106, '#d4a13b'], [32, 231, '#c14c31'], [174, 222, '#dc9636'], [337, 229, '#b94632'], [450, 224, '#e5ab3d']] as Array<[number, number, string]>) {
+    roundBox(x - 4, y + 3, 8, 18, '#79502f', 3, '#694329');
+    ellipse(x, y - 1, 17, 14, '#326b42'); ellipse(x - 7, y - 5, 10, 10, c); ellipse(x + 6, y - 7, 11, 11, c); ellipse(x + 2, y + 2, 11, 9, c);
+    ellipse(x - 6, y - 7, 3, 2, '#f4d66d', '#f4d66d'); ellipse(x + 7, y + 1, 3, 2, '#f4d66d', '#f4d66d');
+  }
+  // Small garden beds add the cultivated, storybook feel while leaving landmarks recognizable.
+  for (const [x, y] of [[105, 45], [286, 46], [375, 107], [100, 222], [290, 225]] as Array<[number, number]>) {
+    roundBox(x, y, 34, 18, '#80502f', 4, '#694329');
+    for (let i = 0; i < 4; i++) { ellipse(x + 7 + i * 7, y + 8, 3, 4, i % 2 ? '#6caa4e' : '#e57d4f', '#517845'); }
+  }
+  // A pale dirt trail bends through the orchard and connects the three story markers to the level.
+  ctx.beginPath(); ctx.moveTo(-8, 165); ctx.bezierCurveTo(85, 143, 145, 206, 229, 179); ctx.bezierCurveTo(318, 150, 392, 196, 489, 163); ctx.lineTo(489, 202); ctx.bezierCurveTo(392, 226, 318, 180, 233, 209); ctx.bezierCurveTo(143, 238, 85, 178, -8, 213); ctx.closePath(); ctx.fillStyle = '#d7b77b'; ctx.fill();
+  ctx.beginPath(); ctx.moveTo(-8, 174); ctx.bezierCurveTo(86, 154, 145, 214, 230, 188); ctx.bezierCurveTo(318, 160, 392, 204, 489, 174); ctx.lineWidth = 2; ctx.strokeStyle = '#eed8a3'; ctx.stroke();
+  // Unlabelled landmarks sit in the background: bell, clock-tower city hall, and museum steps/statue.
+  roundBox(40, 62, 30, 28, '#dfc584', 8); ellipse(55, 62, 20, 5, '#f0d79a'); roundBox(49, 53, 12, 16, '#d0ad60', 4); ellipse(55, 75, 10, 13, '#d7ad55'); rect(54, 72, 2, 14, '#725b38');
   roundBox(218, 59, 44, 30, '#e6ddc9', 5); roundBox(225, 48, 30, 15, '#ded3bb', 4); roundBox(230, 34, 20, 18, '#e7dfcf', 5); ellipse(240, 43, 7, 7, '#7698a1'); roundBox(235, 22, 10, 15, '#d5c49c', 4); ellipse(240, 19, 5, 4, '#c49a47');
   roundBox(393, 77, 45, 12, '#ddd7cb', 3); roundBox(399, 68, 39, 9, '#e8e3d9', 3); roundBox(405, 60, 32, 8, '#d3cec4', 3); ellipse(420, 55, 5, 7, '#aa8058'); roundBox(418, 44, 5, 13, '#aa8058', 2); ellipse(420, 42, 3, 4, '#aa8058');
-  text('LIBERTY BELL', 54, 97, 7, '#fff8e9'); text('CITY HALL', 240, 97, 7, '#fff8e9'); text('ROCKY STEPS', 416, 97, 7, '#fff8e9');
 }
 function drawSign(index: number, x: number): void {
-  roundBox(x - 3, 153, 6, 34, '#78482d', 3); roundBox(x - 35, 134, 70, 27, '#ac6740', 7); roundBox(x - 30, 138, 60, 19, '#d99056', 5, '#9b5b38');
-  text(index < 3 ? ['READ 1', 'READ 2', 'READ 3'][index] : 'PLAY', x, 148, 11, '#fff8e9');
+  // Sign boards intentionally contain no lettering, as requested.
+  roundBox(x - 4, 151, 8, 36, '#78482d', 3);
+  roundBox(x - 35, 133, 70, 28, '#ac6740', 7);
+  roundBox(x - 30, 137, 60, 18, '#d99056', 5, '#9b5b38');
 }
 function drawMap(): void {
   drawAutumnMapBackground();
   // A dotted road links the three information stops to the playable arena.
   for (let x = 60; x < 450; x += 13) rect(x, 185, 6, 3, '#fff1c6');
   for (let i = 0; i < 3; i++) drawSign(i, stopX[i]);
-  drawSign(3, stopX[3]); rect(398, 122, 44, 28, '#d4e1df'); rect(405, 128, 30, 15, '#88b7bc'); rect(409, 132, 22, 11, '#172b46');
+  // The boss level is a large red destination marker instead of a fourth signpost.
+  ellipse(stopX[3], 150, 23, 23, '#d94a3e', '#fff0dc'); ellipse(stopX[3], 150, 12, 12, '#f1765d', '#a83531');
+  ellipse(stopX[3], 150, 4, 4, '#fff1d2', '#fff1d2');
   // The four map positions are one horizontal navigation row for the two arrow controls.
   drawFootballer(stopX[selection] - 29, 170, 1.15);
   for (let i = 0; i < 4; i++) if (i === selection) { rect(stopX[i] - 4, 185, 3, 3, '#ffe35b'); rect(stopX[i] + 1, 185, 3, 3, '#ffe35b'); }
@@ -137,8 +147,13 @@ function drawMap(): void {
 }
 function drawPopup(): void {
   drawMap(); rect(48, 65, 384, 114, '#273755'); rect(53, 70, 374, 104, '#fff4ce');
-  const lines = wrap(messages[selection], 31); lines.forEach((line, i) => text(line, 240, 89 + i * 18, 9, '#273755'));
-  text('● CLOSE', 240, 157, 8, '#a7443d');
+  const lines = wrap(messages[selection], 35);
+  lines.forEach((line, i) => {
+    ctx.font = '600 13px system-ui, -apple-system, "Segoe UI", sans-serif';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillStyle = '#253247';
+    ctx.fillText(line, 240, 88 + i * 16, 350);
+  });
+  text('Tap ● to close', 240, 158, 11, '#a7443d');
 }
 function drawLevel(): void {
   background();
@@ -147,7 +162,7 @@ function drawLevel(): void {
   // Three small lamps give the player a clear count of successful stomps.
   text('HITS', 240, 54, 6); for (let i = 0; i < 3; i++) { rect(216 + i * 17, 65, 10, 10, i < bossHits ? '#ffdc4d' : '#526274'); }
   if (scene === 'level') { drawBoss(); drawFootballer(player.x, player.y); }
-  text('HOLD ◀ ▶ TO RUN   TAP ● TO JUMP', 240, 252, 6, '#fff');
+  text('Hold ◀ ▶ to run   Tap ● to jump', 240, 252, 12, '#fff');
 }
 function drawEnd(win: boolean): void {
   drawLevel(); rect(62, 86, 356, 85, '#1b2e4b'); rect(67, 91, 346, 75, win ? '#f0c74c' : '#bf4056');
