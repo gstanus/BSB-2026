@@ -27,6 +27,7 @@ let bossHits = 0;
 let jumpQueued = false;
 let lastTime = 0;
 let popupReturn: 'map' | 'level' = 'map';
+let mapRepeatMs = 0;
 
 // Small drawing helpers keep every scene crisp and deliberately low-resolution.
 function rect(x: number, y: number, w: number, h: number, color: string): void {
@@ -85,26 +86,45 @@ function drawLandmark(index: number, x: number): void {
     rect(x - 3, 125, 8, 19, '#8d6f52'); rect(x - 5, 118, 12, 8, '#b98c5e'); rect(x + 1, 111, 4, 9, '#b98c5e'); rect(x + 3, 107, 3, 6, '#b98c5e');
   }
 }
+function drawAutumnMapBackground(): void {
+  // The menu is a bird's-eye view: landmarks sit in the distance behind a park-like trail.
+  rect(0, 0, WIDTH, HEIGHT, '#bd7543');
+  rect(0, 36, WIDTH, 108, '#d99550');
+  rect(0, 146, WIDTH, 124, '#80523b');
+  // Tree crowns frame the route like an autumn park seen from above.
+  for (const [x, y, c] of [[18, 59, '#bd4935'], [72, 110, '#e6a83b'], [155, 61, '#a84232'], [273, 104, '#dc8e34'], [348, 59, '#a84232'], [459, 106, '#d4a13b'], [32, 231, '#c14c31'], [174, 222, '#dc9636'], [337, 229, '#b94632'], [450, 224, '#e5ab3d']] as Array<[number, number, string]>) {
+    rect(x - 12, y - 8, 24, 17, c); rect(x - 8, y - 13, 16, 27, c); rect(x - 3, y + 4, 6, 10, '#684630');
+  }
+  // Cream walking path winds across the autumn ground beneath the signposts.
+  rect(0, 155, WIDTH, 43, '#e2bd78'); rect(0, 164, WIDTH, 25, '#f0d49a');
+  rect(0, 204, WIDTH, 37, '#d5aa69');
+  for (let x = 14; x < WIDTH; x += 31) { rect(x, 171 + (x % 3) * 2, 3, 3, '#b47a49'); }
+  // Skyline landmarks appear as distant background landmarks, rather than props beside the path.
+  rect(29, 63, 46, 31, '#dbc99e'); rect(36, 57, 32, 7, '#e9d9b7'); rect(42, 49, 20, 9, '#d4be8b');
+  rect(213, 53, 54, 42, '#ded1b7'); rect(220, 43, 40, 11, '#d2c2a0'); rect(228, 27, 24, 17, '#e6dac2'); rect(235, 18, 10, 10, '#c7aa64');
+  rect(390, 72, 54, 23, '#d8d1c2'); rect(396, 66, 42, 7, '#e9e2d6');
+  rect(413, 55, 8, 12, '#93765a'); rect(411, 49, 12, 7, '#b39469'); rect(415, 41, 3, 9, '#b39469');
+}
 function drawSign(index: number, x: number): void {
   rect(x - 2, 154, 4, 31, '#78482d'); rect(x - 25, 139, 50, 20, '#ac6740'); rect(x - 22, 142, 44, 14, '#d99056');
   text(index < 3 ? ['BELL', 'CITY HALL', 'ROCKY'][index] : 'LEVEL', x, 150, index === 1 ? 4 : 5, '#fff2cc');
 }
 function drawMap(): void {
-  background();
-  text('PHILLY PLAYOFF TRAIL', 240, 29, 10, '#fff8d8');
+  drawAutumnMapBackground();
+  text('AUTUMN IN PHILLY', 240, 18, 11, '#fff8d8');
   // A dotted road links the three information stops to the playable arena.
-  for (let x = 60; x < 450; x += 13) rect(x, 188, 6, 3, '#fff1c6');
-  for (let i = 0; i < 3; i++) { drawLandmark(i, stopX[i]); drawSign(i, stopX[i]); }
+  for (let x = 60; x < 450; x += 13) rect(x, 185, 6, 3, '#fff1c6');
+  for (let i = 0; i < 3; i++) drawSign(i, stopX[i]);
   drawSign(3, stopX[3]); rect(398, 122, 44, 28, '#d4e1df'); rect(405, 128, 30, 15, '#88b7bc'); rect(409, 132, 22, 11, '#172b46');
   // The four map positions are one horizontal navigation row for the two arrow controls.
-  drawFootballer(stopX[selection] - 8, 176, 0.8);
-  for (let i = 0; i < 4; i++) if (i === selection) { rect(stopX[i] - 4, 181, 3, 3, '#ffe35b'); rect(stopX[i] + 1, 181, 3, 3, '#ffe35b'); }
-  text('◀  ▶ MOVE     ● SELECT', 240, 254, 6, '#fff');
+  drawFootballer(stopX[selection] - 8, 158, 0.9);
+  for (let i = 0; i < 4; i++) if (i === selection) { rect(stopX[i] - 4, 185, 3, 3, '#ffe35b'); rect(stopX[i] + 1, 185, 3, 3, '#ffe35b'); }
+  text('◀  ▶ MOVE     ● SELECT', 240, 250, 8, '#fff');
 }
 function drawPopup(): void {
   drawMap(); rect(48, 65, 384, 114, '#273755'); rect(53, 70, 374, 104, '#fff4ce');
-  const lines = wrap(messages[selection], 44); lines.forEach((line, i) => text(line, 240, 91 + i * 15, 7, '#273755'));
-  text('● CLOSE', 240, 156, 6, '#a7443d');
+  const lines = wrap(messages[selection], 31); lines.forEach((line, i) => text(line, 240, 89 + i * 18, 9, '#273755'));
+  text('● CLOSE', 240, 157, 8, '#a7443d');
 }
 function drawLevel(): void {
   background();
@@ -139,9 +159,16 @@ function action(): void {
 }
 function update(delta: number): void {
   if (scene === 'map') {
-    if (held.has('left')) selection = Math.max(0, selection - delta * 0.006);
-    if (held.has('right')) selection = Math.min(3, selection + delta * 0.006);
-    selection = Math.round(selection);
+    const direction = (held.has('right') ? 1 : 0) - (held.has('left') ? 1 : 0);
+    if (direction === 0) mapRepeatMs = 0;
+    else {
+      mapRepeatMs += delta;
+      // Trigger immediately, then repeat while held; no sub-step rounding can swallow taps.
+      if (mapRepeatMs === delta || mapRepeatMs >= 220) {
+        selection = Math.max(0, Math.min(3, selection + direction));
+        mapRepeatMs = 0;
+      }
+    }
   }
   if (scene === 'level') {
     const speed = 2.0 * delta / 16.67;
@@ -172,6 +199,7 @@ function bindHold(id: string, control: Control): void {
   button.addEventListener('pointerdown', (event: PointerEvent) => { event.preventDefault(); held.add(control); button.classList.add('pressed'); button.setPointerCapture(event.pointerId); });
   const release = (): void => { held.delete(control); button.classList.remove('pressed'); };
   button.addEventListener('pointerup', release); button.addEventListener('pointercancel', release); button.addEventListener('lostpointercapture', release);
+  button.addEventListener('click', (event: MouseEvent) => { event.preventDefault(); if (scene === 'map') { selection = Math.max(0, Math.min(3, selection + (control === 'right' ? 1 : -1))); } });
 }
 bindHold('left', 'left'); bindHold('right', 'right');
 document.querySelector<HTMLButtonElement>('#action')!.addEventListener('pointerdown', (event: PointerEvent) => { event.preventDefault(); action(); });
