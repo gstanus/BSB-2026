@@ -17,6 +17,20 @@ const messages: string[] = [
   'Both teams are competing for a playoff bye this year, so the stakes are higher than ever',
   'This years winner will receive [TBD] and eternal bragging rights. Can Geri protect his lead from the evil Liam?'
 ];
+// 2026 regular-season stats are current through the NFL pages' latest published game logs.
+const seasonFacts: string[] = [
+  'Jayden Daniels has thrown for 976 yards and 6 touchdowns in 2026.',
+  'James Cook has rushed for 707 yards in the 2026 season.',
+  'Bhayshul Tuten has 521 rushing yards and 4 rushing touchdowns in 2026.',
+  'Zay Flowers has caught passes for 608 yards and 3 touchdowns in 2026.',
+  'Rashee Rice has 243 receiving yards and 2 touchdowns this 2026 season.',
+  'Brock Bowers has 547 receiving yards and 5 touchdowns in 2026.',
+  'Drake Maye has thrown for 1,983 yards and 15 touchdowns in 2026.',
+  'Ollie Gordon has rushed for 408 yards and 4 touchdowns this season.',
+  'Jonathan Taylor has rushed for 610 yards and 8 touchdowns in 2026.',
+  'Chris Olave has 636 receiving yards in the 2026 season.',
+  'Jameson Williams has 437 receiving yards and 5 touchdowns in 2026.'
+];
 const stopX = [105, 210, 315, 420];
 let scene: Scene = 'title';
 let selection = 0;
@@ -28,6 +42,7 @@ let jumpQueued = false;
 let lastTime = 0;
 let popupReturn: 'map' | 'level' = 'map';
 let mapRepeatMs = 0;
+let endFact = seasonFacts[0];
 
 // Cartoon drawing helpers use smooth geometry and high-contrast outlines for clear shapes.
 function rect(x: number, y: number, w: number, h: number, color: string): void {
@@ -131,7 +146,8 @@ function drawAutumnMapBackground(): void {
     if ((x / 24 + y / 18) % 3 === 0) roundBox(x + 3, y + 5, 5, 3, '#b6d982', 2, '#b6d982');
   }
   // Autumn orchard trees have visible trunks, layered crowns, and bright fallen leaves.
-  for (const [x, y, c] of [[18, 59, '#bd4935'], [72, 110, '#e6a83b'], [155, 61, '#a84232'], [273, 104, '#dc8e34'], [348, 59, '#a84232'], [459, 106, '#d4a13b'], [32, 231, '#c14c31'], [174, 222, '#dc9636'], [337, 229, '#b94632'], [450, 224, '#e5ab3d']] as Array<[number, number, string]>) {
+  // Keep the trees above the road's upper edge so the trail never slices through their crowns.
+  for (const [x, y, c] of [[18, 59, '#bd4935'], [72, 110, '#e6a83b'], [155, 61, '#a84232'], [273, 104, '#dc8e34'], [348, 59, '#a84232'], [459, 106, '#d4a13b']] as Array<[number, number, string]>) {
     roundBox(x - 4, y + 3, 8, 18, '#79502f', 3, '#694329');
     ellipse(x, y - 1, 17, 14, '#326b42'); ellipse(x - 7, y - 5, 10, 10, c); ellipse(x + 6, y - 7, 11, 11, c); ellipse(x + 2, y + 2, 11, 9, c);
     ellipse(x - 6, y - 7, 3, 2, '#f4d66d', '#f4d66d'); ellipse(x + 7, y + 1, 3, 2, '#f4d66d', '#f4d66d');
@@ -200,7 +216,6 @@ function drawSign(index: number, x: number): void {
 function drawMap(): void {
   drawAutumnMapBackground();
   // A dotted road links the three information stops to the playable arena.
-  for (let x = 60; x < 450; x += 13) rect(x, 185, 6, 3, '#fff1c6');
   for (let i = 0; i < 3; i++) drawSign(i, stopX[i]);
   // The boss level is a large red destination marker instead of a fourth signpost.
   ellipse(stopX[3], 150, 23, 23, '#d94a3e', '#fff0dc'); ellipse(stopX[3], 150, 12, 12, '#f1765d', '#a83531');
@@ -230,15 +245,21 @@ function drawLevel(): void {
   text('Hold ◀ ▶ to run   Tap ● to jump', 240, 252, 12, '#fff');
 }
 function drawEnd(win: boolean): void {
-  drawLevel(); rect(62, 86, 356, 85, '#1b2e4b'); rect(67, 91, 346, 75, win ? '#f0c74c' : '#bf4056');
-  text(win ? "You've won!" : 'GAME OVER', 240, 115, 13, '#fff8d8');
-  text(win ? 'HAPPY BROAD STREET BOWL!' : 'RETURNING TO THE MAP', 240, 143, 6, '#fff');
-  if (win) text('TAP ● FOR MAP', 240, 191, 7, '#fff');
+  drawLevel(); roundBox(38, 53, 404, 165, '#1b2e4b', 14, '#f0d49a'); roundBox(44, 59, 392, 153, win ? '#f0c74c' : '#bf4056', 11, '#fff1d2');
+  text(win ? "You've won!" : 'Game Over', 240, win ? 73 : 79, 23, '#fff8d8');
+  if (win) text('Happy Broad Street Bowl!', 240, 97, 17, '#ffffff');
+  text('2026 NFL season fact', 240, win ? 120 : 107, 15, '#ffffff');
+  const factLines = wrap(endFact, 44);
+  factLines.slice(0, 3).forEach((line, index) => {
+    ctx.font = '600 13px system-ui, -apple-system, "Segoe UI", sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillStyle = '#ffffff'; ctx.fillText(line, 240, (win ? 141 : 129) + index * 16, 360);
+  });
+  text('Press ● to return to the map', 240, 190, 14, '#ffffff');
 }
 
 function setHint(): void {
   const hint = document.querySelector<HTMLElement>('#hint')!;
-  hint.textContent = scene === 'title' ? 'Tap the button to begin' : scene === 'map' ? 'Use arrows to choose a stop; button to select' : scene === 'message' ? 'Tap the button to close' : scene === 'level' ? 'Hold left/right to move; tap button to jump' : scene === 'win' ? 'Tap the button to return to the map' : 'Game over — returning to map';
+  hint.textContent = scene === 'title' ? 'Tap the button to begin' : scene === 'map' ? 'Use arrows to choose a stop; button to select' : scene === 'message' ? 'Tap the button to close' : scene === 'level' ? 'Hold left/right to move; tap button to jump' : scene === 'win' || scene === 'lose' ? 'Press the button to return to the map' : '';
 }
 function startLevel(): void {
   scene = 'level'; bossHits = 0; player = { x: 72, y: 124, vx: 0, vy: 0, w: 24, h: 38 }; boss = { x: 365, y: 130, vx: -1.15, vy: 0, w: 44, h: 46 };
@@ -248,7 +269,7 @@ function action(): void {
   else if (scene === 'map') { if (selection < 3) { popupReturn = 'map'; scene = 'message'; } else startLevel(); }
   else if (scene === 'message') scene = popupReturn;
   else if (scene === 'level' && player.y + player.h >= 162) { player.vy = -5.1; }
-  else if (scene === 'win') scene = 'map';
+  else if (scene === 'win' || scene === 'lose') scene = 'map';
   setHint();
 }
 function update(delta: number): void {
@@ -277,8 +298,8 @@ function update(delta: number): void {
     const overlapY = player.y + player.h > boss.y + 5 && player.y < boss.y + boss.h;
     if (overlapX && nearTop && player.vy > 0) {
       bossHits++; player.vy = -4.3; boss.vx *= -1;
-      if (bossHits >= 3) { scene = 'win'; setHint(); }
-    } else if (overlapX && overlapY) { scene = 'lose'; setHint(); window.setTimeout(() => { scene = 'map'; setHint(); }, 1500); }
+      if (bossHits >= 3) { scene = 'win'; endFact = seasonFacts[Math.floor(Math.random() * seasonFacts.length)]; setHint(); }
+    } else if (overlapX && overlapY) { scene = 'lose'; endFact = seasonFacts[Math.floor(Math.random() * seasonFacts.length)]; setHint(); }
   }
 }
 function frame(time: number): void {
