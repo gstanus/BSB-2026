@@ -65,20 +65,29 @@ function drawFootballer(x: number, y: number, scale = 1): void {
   ellipse(12, 8, 1.4, 1.8, '#292735', '#292735'); ctx.restore();
 }
 function drawBoss(): void {
-  // Original helmeted turtle-like rival; the shirt label is a gameplay detail from the brief.
+  // Draw Liam as a friendly cartoon opponent inspired by the supplied portrait.
   const x = boss.x, y = boss.y;
   ellipse(x + 22, y + 43, 21, 5, '#5a4937', '#5a4937');
-  ellipse(x + 22, y + 16, 21, 16, '#7baa45');
-  roundBox(x + 3, y + 2, 39, 13, '#e9a83d', 7); roundBox(x + 6, y + 5, 34, 10, '#c67a29', 6);
-  ellipse(x + 22, y + 19, 14, 11, '#f1cf9b');
-  roundBox(x + 5, y + 26, 34, 19, '#48cba8', 6);
-  ellipse(x + 9, y + 31, 4, 3, '#ee6690', '#ee6690'); ellipse(x + 35, y + 38, 4, 3, '#9679e4', '#9679e4');
-  ellipse(x + 17, y + 36, 4, 3, '#f3d34e', '#f3d34e');
-  // A solid white chest patch makes the opponent's name readable over the tie-dye pattern.
-  roundBox(x + 10, y + 30, 26, 13, '#fffdf2', 3, '#287e72');
-  text('LIAM', x + 23, y + 36.5, 10, '#183b4a');
-  roundBox(x + 8, y + 42, 13, 5, '#745537', 2); roundBox(x + 25, y + 42, 13, 5, '#745537', 2);
-  ellipse(x + 30, y + 19, 2, 2, '#292735', '#292735');
+  // Plaid overshirt, with broad intersecting lines that remain visible at phone scale.
+  roundBox(x + 3, y + 24, 39, 20, '#8d998d', 7, '#3f4c47');
+  ctx.save(); ctx.beginPath(); ctx.roundRect(x + 4, y + 25, 37, 18, 6); ctx.clip();
+  ctx.strokeStyle = '#303c3a'; ctx.lineWidth = 1.5;
+  for (const px of [x + 11, x + 23, x + 35]) { ctx.beginPath(); ctx.moveTo(px, y + 25); ctx.lineTo(px - 3, y + 44); ctx.stroke(); }
+  for (const py of [y + 30, y + 38]) { ctx.beginPath(); ctx.moveTo(x + 3, py); ctx.lineTo(x + 42, py); ctx.stroke(); }
+  ctx.strokeStyle = '#d0c3a7'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(x + 17, y + 25); ctx.lineTo(x + 14, y + 44); ctx.moveTo(x + 4, y + 34); ctx.lineTo(x + 42, y + 34); ctx.stroke();
+  ctx.restore();
+  // Orange tee and a bright label panel keep the requested name easy to read.
+  roundBox(x + 14, y + 28, 17, 15, '#ec824e', 3, '#b75736');
+  roundBox(x + 9, y + 33, 27, 11, '#fffdf2', 3, '#5b665c');
+  text('LIAM', x + 22.5, y + 38.5, 10, '#253b3b');
+  // Face, ears, curly dark hair, eyes, and a broad friendly smile.
+  ellipse(x + 22, y + 18, 13, 13, '#edbd91');
+  ellipse(x + 9, y + 18, 3, 4, '#e2aa80'); ellipse(x + 35, y + 18, 3, 4, '#e2aa80');
+  ellipse(x + 13, y + 9, 5, 6, '#302622'); ellipse(x + 19, y + 7, 6, 7, '#302622'); ellipse(x + 26, y + 8, 6, 7, '#302622'); ellipse(x + 31, y + 11, 5, 6, '#302622');
+  ellipse(x + 17, y + 18, 1.3, 1.7, '#282628', '#282628'); ellipse(x + 27, y + 18, 1.3, 1.7, '#282628', '#282628');
+  ctx.beginPath(); ctx.moveTo(x + 16, y + 23); ctx.quadraticCurveTo(x + 22, y + 31, x + 29, y + 22); ctx.closePath(); ctx.fillStyle = '#753d36'; ctx.fill();
+  roundBox(x + 17, y + 23, 11, 3, '#fff9e8', 1, '#fff9e8');
 }
 function drawTitle(): void {
   background();
