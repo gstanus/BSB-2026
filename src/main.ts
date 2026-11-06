@@ -22,7 +22,7 @@ let scene: Scene = 'title';
 let selection = 0;
 let held = new Set<Control>();
 let player: Actor = { x: 58, y: 192, vx: 0, vy: 0, w: 18, h: 27 };
-let boss: Actor = { x: 365, y: 194, vx: -1.15, vy: 0, w: 30, h: 31 };
+let boss: Actor = { x: 365, y: 178, vx: -1.15, vy: 0, w: 44, h: 46 };
 let bossHits = 0;
 let jumpQueued = false;
 let lastTime = 0;
@@ -60,11 +60,11 @@ function drawFootballer(x: number, y: number, scale = 1): void {
 function drawBoss(): void {
   // Original helmeted turtle-like rival; the shirt label is a gameplay detail from the brief.
   const x = boss.x, y = boss.y;
-  rect(x + 4, y, 22, 7, '#e5b653'); rect(x + 1, y + 5, 28, 6, '#d89337'); rect(x + 7, y + 10, 18, 8, '#f2d49a');
-  rect(x + 3, y + 18, 24, 12, '#47c8a5'); rect(x + 5, y + 18, 6, 4, '#ef6394'); rect(x + 13, y + 21, 6, 4, '#f5dc55'); rect(x + 21, y + 18, 5, 5, '#9a7be6');
-  rect(x + 17, y + 19, 3, 8, '#f4eee2'); rect(x + 17, y + 25, 5, 3, '#f4eee2');
-  text('Liam', x + 15, y + 24, 4, '#17233a'); rect(x + 5, y + 29, 8, 3, '#745537'); rect(x + 19, y + 29, 8, 3, '#745537');
-  rect(x + 20, y + 12, 2, 2, '#202532');
+  rect(x + 7, y, 30, 9, '#e5b653'); rect(x + 3, y + 6, 38, 8, '#d89337'); rect(x + 10, y + 13, 25, 11, '#f2d49a');
+  rect(x + 5, y + 24, 34, 19, '#47c8a5'); rect(x + 7, y + 25, 8, 6, '#ef6394'); rect(x + 17, y + 29, 9, 6, '#f5dc55'); rect(x + 29, y + 25, 8, 7, '#9a7be6');
+  rect(x + 21, y + 26, 4, 13, '#f4eee2'); rect(x + 21, y + 36, 8, 5, '#f4eee2');
+  text('LIAM', x + 22, y + 34, 6, '#17233a'); rect(x + 8, y + 42, 12, 4, '#745537'); rect(x + 25, y + 42, 12, 4, '#745537');
+  rect(x + 29, y + 17, 3, 3, '#202532');
 }
 function drawTitle(): void {
   background();
@@ -111,15 +111,14 @@ function drawSign(index: number, x: number): void {
 }
 function drawMap(): void {
   drawAutumnMapBackground();
-  text('AUTUMN IN PHILLY', 240, 18, 11, '#fff8d8');
   // A dotted road links the three information stops to the playable arena.
   for (let x = 60; x < 450; x += 13) rect(x, 185, 6, 3, '#fff1c6');
   for (let i = 0; i < 3; i++) drawSign(i, stopX[i]);
   drawSign(3, stopX[3]); rect(398, 122, 44, 28, '#d4e1df'); rect(405, 128, 30, 15, '#88b7bc'); rect(409, 132, 22, 11, '#172b46');
   // The four map positions are one horizontal navigation row for the two arrow controls.
-  drawFootballer(stopX[selection] - 8, 158, 0.9);
+  drawFootballer(stopX[selection] - 9, 151, 1.15);
   for (let i = 0; i < 4; i++) if (i === selection) { rect(stopX[i] - 4, 185, 3, 3, '#ffe35b'); rect(stopX[i] + 1, 185, 3, 3, '#ffe35b'); }
-  text('◀  ▶ MOVE     ● SELECT', 240, 250, 8, '#fff');
+  text('◀  ▶ MOVE     ● SELECT', 240, 254, 8, '#fff');
 }
 function drawPopup(): void {
   drawMap(); rect(48, 65, 384, 114, '#273755'); rect(53, 70, 374, 104, '#fff4ce');
@@ -147,7 +146,7 @@ function setHint(): void {
   hint.textContent = scene === 'title' ? 'Tap the button to begin' : scene === 'map' ? 'Use arrows to choose a stop; button to select' : scene === 'message' ? 'Tap the button to close' : scene === 'level' ? 'Hold left/right to move; tap button to jump' : scene === 'win' ? 'Tap the button to return to the map' : 'Game over — returning to map';
 }
 function startLevel(): void {
-  scene = 'level'; bossHits = 0; player = { x: 72, y: 143, vx: 0, vy: 0, w: 18, h: 27 }; boss = { x: 365, y: 141, vx: -1.15, vy: 0, w: 30, h: 31 };
+  scene = 'level'; bossHits = 0; player = { x: 72, y: 135, vx: 0, vy: 0, w: 18, h: 27 }; boss = { x: 365, y: 130, vx: -1.15, vy: 0, w: 44, h: 46 };
 }
 function action(): void {
   if (scene === 'title') scene = 'map';
@@ -196,10 +195,13 @@ function frame(time: number): void {
 // Buttons respond to touch, mouse and keyboard, while pointer capture supports held movement.
 function bindHold(id: string, control: Control): void {
   const button = document.querySelector<HTMLButtonElement>(`#${id}`)!;
-  button.addEventListener('pointerdown', (event: PointerEvent) => { event.preventDefault(); held.add(control); button.classList.add('pressed'); button.setPointerCapture(event.pointerId); });
+  button.addEventListener('pointerdown', (event: PointerEvent) => {
+    event.preventDefault(); button.classList.add('pressed');
+    if (scene === 'map') { selection = Math.max(0, Math.min(3, selection + (control === 'right' ? 1 : -1))); return; }
+    held.add(control); button.setPointerCapture(event.pointerId);
+  });
   const release = (): void => { held.delete(control); button.classList.remove('pressed'); };
   button.addEventListener('pointerup', release); button.addEventListener('pointercancel', release); button.addEventListener('lostpointercapture', release);
-  button.addEventListener('click', (event: MouseEvent) => { event.preventDefault(); if (scene === 'map') { selection = Math.max(0, Math.min(3, selection + (control === 'right' ? 1 : -1))); } });
 }
 bindHold('left', 'left'); bindHold('right', 'right');
 document.querySelector<HTMLButtonElement>('#action')!.addEventListener('pointerdown', (event: PointerEvent) => { event.preventDefault(); action(); });
