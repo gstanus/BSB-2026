@@ -293,11 +293,10 @@ function drawMenuAnimations(): void {
     ctx.save(); ctx.translate(x, y); ctx.rotate(Math.sin(animationTimeMs * 0.004 + i) * 0.5);
     rect(-3, -2, 6, 4, i % 2 ? '#e7a83f' : '#c94c38'); rect(-1, -1, 2, 2, '#f4ce68'); ctx.restore();
   }
-  // Each 12-second flyby pauses during the bell's ring window to keep the animations separate.
+  // The eagle flies on a 12-second cycle and may overlap the bell's animation.
   const eagleCycle = Math.floor(animationTimeMs / 12000);
   const eaglePhase = animationTimeMs % 12000;
-  const bellIsRinging = animationTimeMs % 5000 < 900;
-  if (eaglePhase >= 1500 && eagleFlightElapsedMs > 0 && eagleFlightElapsedMs < 3200 && !bellIsRinging) {
+  if (eaglePhase >= 1500 && eagleFlightElapsedMs > 0 && eagleFlightElapsedMs < 3200) {
     const progress = eagleFlightElapsedMs / 3200;
     const fromRight = eagleCycle % 2 === 0;
     drawEagle(progress, fromRight, fromRight ? 25 : HEIGHT - 47);
@@ -395,8 +394,7 @@ function update(delta: number): void {
   const currentEagleCycle = Math.floor(animationTimeMs / 12000);
   if (currentEagleCycle !== eagleCycleIndex) { eagleCycleIndex = currentEagleCycle; eagleFlightElapsedMs = 0; }
   const eagleCyclePhase = animationTimeMs % 12000;
-  const bellIsRinging = animationTimeMs % 5000 < 900;
-  if (eagleCyclePhase >= 1500 && eagleFlightElapsedMs < 3200 && !bellIsRinging) {
+  if (eagleCyclePhase >= 1500 && eagleFlightElapsedMs < 3200) {
     eagleFlightElapsedMs = Math.min(3200, eagleFlightElapsedMs + delta);
   }
   if (scene === 'map') {
