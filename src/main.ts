@@ -42,6 +42,8 @@ let player: Actor = { x: 58, y: 192, vx: 0, vy: 0, w: 24, h: 38 };
 let boss: Actor = { x: 365, y: 178, vx: -1.15, vy: 0, w: 44, h: 46 };
 let bossHits = 0;
 let bossThrowTimerMs = 0;
+let bossTurnTimerMs = 0;
+let bossNextTurnMs = 1400;
 let footballs: FootballProjectile[] = [];
 let jumpQueued = false;
 let lastTime = 0;
@@ -289,6 +291,23 @@ function drawMenuAnimations(): void {
     ctx.save(); ctx.translate(x, y); ctx.rotate(Math.sin(animationTimeMs * 0.004 + i) * 0.5);
     rect(-3, -2, 6, 4, i % 2 ? '#e7a83f' : '#c94c38'); rect(-1, -1, 2, 2, '#f4ce68'); ctx.restore();
   }
+  // The flyby window is 1.5–3.9 seconds of each five-second cycle; the bell rings at 0–0.9 seconds.
+  const eaglePhase = animationTimeMs % 5000;
+  if (eaglePhase >= 1500 && eaglePhase < 3900) drawEagle((eaglePhase - 1500) / 2400);
+}
+function drawEagle(progress: number): void {
+  const x = -28 + progress * (WIDTH + 56);
+  const y = 27 + Math.sin(progress * Math.PI * 2) * 4;
+  const wingBeat = Math.sin(animationTimeMs * 0.018) * 8;
+  ctx.save(); ctx.translate(x, y);
+  // A compact overhead eagle silhouette with flapping wings and a white head.
+  ctx.fillStyle = '#493a32'; ctx.strokeStyle = '#2f2926'; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(-3, 0); ctx.quadraticCurveTo(-19, -7 - wingBeat, -28, -8 - wingBeat); ctx.lineTo(-20, 1); ctx.lineTo(-29, 4); ctx.quadraticCurveTo(-13, 8 + wingBeat, -3, 4); ctx.closePath(); ctx.fill(); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(3, 0); ctx.quadraticCurveTo(19, -7 - wingBeat, 28, -8 - wingBeat); ctx.lineTo(20, 1); ctx.lineTo(29, 4); ctx.quadraticCurveTo(13, 8 + wingBeat, 3, 4); ctx.closePath(); ctx.fill(); ctx.stroke();
+  ellipse(0, 2, 8, 5, '#493a32'); ellipse(8, -2, 5, 4, '#f1eee1', '#493a32');
+  ctx.beginPath(); ctx.moveTo(12, -2); ctx.lineTo(18, 0); ctx.lineTo(12, 2); ctx.closePath(); ctx.fillStyle = '#e9b746'; ctx.fill();
+  rect(7, -4, 2, 2, '#282522');
+  ctx.restore();
 }
 function drawMap(): void {
   drawAutumnMapBackground();
@@ -353,7 +372,7 @@ function setHint(): void {
   hint.textContent = scene === 'title' ? 'Tap the button to begin' : scene === 'map' ? 'Use arrows to choose a stop; button to select' : scene === 'message' ? 'Tap the button to close' : scene === 'level' ? 'Hold left/right to move; tap button to jump' : scene === 'win' || scene === 'lose' ? 'Press the button to return to the map' : '';
 }
 function startLevel(): void {
-  scene = 'level'; bossHits = 0; bossThrowTimerMs = 0; footballs = []; player = { x: 72, y: 124, vx: 0, vy: 0, w: 24, h: 38 }; boss = { x: 365, y: 130, vx: -1.15, vy: 0, w: 44, h: 46 };
+  scene = 'level'; bossHits = 0; bossThrowTimerMs = 0; bossTurnTimerMs = 0; bossNextTurnMs = 900 + Math.random() * 1400; footballs = []; player = { x: 72, y: 124, vx: 0, vy: 0, w: 24, h: 38 }; boss = { x: 365, y: 130, vx: -1.15, vy: 0, w: 44, h: 46 };
 }
 function action(): void {
   if (scene === 'title') scene = 'map';
@@ -389,8 +408,17 @@ function update(delta: number): void {
     player.x = Math.max(55, Math.min(407, player.x + player.vx * speed));
     player.vy += 0.22 * delta / 16.67; player.y += player.vy * delta / 16.67;
     if (player.y + player.h >= 162) { player.y = 162 - player.h; player.vy = 0; }
+    // Vary pace and occasionally turn, while clamping exactly to arena limits to prevent edge stalls.
+    bossTurnTimerMs += delta;
+    if (bossTurnTimerMs >= bossNextTurnMs) {
+      if (Math.random() < 0.36) boss.vx *= -1;
+      boss.vx = Math.sign(boss.vx || -1) * (0.8 + Math.random() * 1.1);
+      bossTurnTimerMs = 0; bossNextTurnMs = 700 + Math.random() * 1700;
+    }
     boss.x += boss.vx * delta / 16.67;
-    if (boss.x < 65 || boss.x + boss.w > 415) boss.vx *= -1;
+    const bossLeftLimit = 65, bossRightLimit = 415 - boss.w;
+    if (boss.x <= bossLeftLimit) { boss.x = bossLeftLimit; boss.vx = Math.abs(boss.vx); }
+    else if (boss.x >= bossRightLimit) { boss.x = bossRightLimit; boss.vx = -Math.abs(boss.vx); }
     // Liam starts throwing only after the player has landed two successful stomps.
     if (bossHits >= 2) {
       bossThrowTimerMs += delta;
@@ -398,7 +426,9 @@ function update(delta: number): void {
         bossThrowTimerMs = 0;
         const launchX = boss.x + boss.w / 2;
         const targetX = player.x + player.w / 2;
-        footballs.push({ x: launchX, y: boss.y + 25, vx: Math.max(-5, Math.min(5, (targetX - launchX) / 48)), vy: -3.8 });
+        const inFront = player.vx !== 0 ? Math.sign(player.vx) : Math.sign(targetX - launchX || 1);
+        const landingX = targetX + inFront * (24 + Math.random() * 10);
+        footballs.push({ x: launchX, y: boss.y + 25, vx: Math.max(-2.1, Math.min(2.1, (landingX - launchX) / 48)), vy: -3.1 });
       }
     }
     const frameScale = delta / 16.67;
@@ -419,7 +449,11 @@ function update(delta: number): void {
     const nearTop = player.y + player.h >= boss.y && player.y + player.h <= boss.y + 10;
     const overlapY = player.y + player.h > boss.y + 5 && player.y < boss.y + boss.h;
     if (overlapX && nearTop && player.vy > 0) {
-      bossHits++; player.vy = -4.3; boss.vx *= -1;
+      bossHits++; player.vy = -4.3;
+      // A stomp can jostle Liam's pace, but it does not automatically reverse his direction.
+      if (Math.random() < 0.28) boss.vx *= -1;
+      boss.vx = Math.sign(boss.vx || -1) * (0.85 + Math.random() * 1.1);
+      bossTurnTimerMs = 0; bossNextTurnMs = 500 + Math.random() * 1200;
       if (bossHits >= 3) { scene = 'win'; endFact = seasonFacts[Math.floor(Math.random() * seasonFacts.length)]; setHint(); }
     } else if (overlapX && overlapY) { scene = 'lose'; endFact = seasonFacts[Math.floor(Math.random() * seasonFacts.length)]; setHint(); }
   }
