@@ -339,7 +339,6 @@ function drawMap(): void {
   rect(trophyX - 9, trophyY + 6, 18, 4, '#d99537'); rect(trophyX - 7, trophyY + 7, 14, 1, '#ffe17a');
   // The four map positions are one horizontal navigation row for the two arrow controls.
   drawFootballer(mapWalkerX, mapWalkerY, 1.15);
-  for (let i = 0; i < 4; i++) if (i === selection) { rect(stopX[i] - 4, stopRoadY[i] + 8, 3, 3, '#ffe35b'); rect(stopX[i] + 1, stopRoadY[i] + 8, 3, 3, '#ffe35b'); }
   text('◀  ▶ MOVE     ● SELECT', 240, 254, 8, '#fff');
 }
 function drawPopup(): void {
