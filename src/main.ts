@@ -118,6 +118,20 @@ function drawBoss(): void {
   // Draw Liam as a friendly cartoon opponent inspired by the supplied portrait.
   const x = boss.x, y = boss.y;
   ellipse(x + 22, y + 43, 21, 5, '#5a4937', '#5a4937');
+  // The bicycle sits behind Liam so the rider and readable shirt label stay clear.
+  ctx.strokeStyle = '#343a3d'; ctx.lineWidth = 2;
+  for (const wheelX of [x + 7, x + 37]) {
+    ctx.beginPath(); ctx.arc(wheelX, y + 39, 6, 0, Math.PI * 2); ctx.stroke();
+    ctx.beginPath(); ctx.arc(wheelX, y + 39, 1, 0, Math.PI * 2); ctx.fillStyle = '#d8d2c4'; ctx.fill();
+  }
+  ctx.strokeStyle = '#b84337'; ctx.lineWidth = 2.5; ctx.lineCap = 'round';
+  ctx.beginPath();
+  ctx.moveTo(x + 7, y + 39); ctx.lineTo(x + 17, y + 30); ctx.lineTo(x + 24, y + 39);
+  ctx.lineTo(x + 7, y + 39); ctx.moveTo(x + 17, y + 30); ctx.lineTo(x + 37, y + 39);
+  ctx.moveTo(x + 24, y + 39); ctx.lineTo(x + 37, y + 39); ctx.stroke();
+  ctx.strokeStyle = '#343a3d'; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(x + 17, y + 30); ctx.lineTo(x + 14, y + 28); ctx.moveTo(x + 14, y + 28); ctx.lineTo(x + 19, y + 28);
+  ctx.moveTo(x + 37, y + 39); ctx.lineTo(x + 35, y + 28); ctx.lineTo(x + 39, y + 28); ctx.stroke();
   // Plaid overshirt, with broad intersecting lines that remain visible at phone scale.
   roundBox(x + 3, y + 24, 39, 20, '#8d998d', 7, '#3f4c47');
   ctx.save(); ctx.beginPath(); ctx.roundRect(x + 4, y + 25, 37, 18, 6); ctx.clip();
