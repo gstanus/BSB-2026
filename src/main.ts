@@ -32,6 +32,8 @@ const seasonFacts: string[] = [
   'Jameson Williams has 437 receiving yards and 5 touchdowns in 2026.'
 ];
 const stopX = [105, 210, 315, 420];
+// Approximate centerline heights where each stop meets the winding trail.
+const stopRoadY = [182, 193, 183, 178];
 let scene: Scene = 'title';
 let selection = 0;
 let held = new Set<Control>();
@@ -43,6 +45,12 @@ let lastTime = 0;
 let popupReturn: 'map' | 'level' = 'map';
 let mapRepeatMs = 0;
 let endFact = seasonFacts[0];
+let animationTimeMs = 0;
+let mapWalkerX = stopX[0] - 29;
+let mapWalkerY = stopRoadY[0] - 34;
+let mapWalkFrom = { x: mapWalkerX, y: mapWalkerY };
+let mapWalkTo = { x: mapWalkerX, y: mapWalkerY };
+let mapWalkProgress = 1;
 
 // Cartoon drawing helpers use smooth geometry and high-contrast outlines for clear shapes.
 function rect(x: number, y: number, w: number, h: number, color: string): void {
@@ -197,7 +205,13 @@ function drawAutumnMapBackground(): void {
   // A dark, irregular line descends from the bell's shoulder to its broken rim.
   ctx.beginPath(); ctx.moveTo(1, 56); ctx.lineTo(-2, 65); ctx.lineTo(2, 72); ctx.lineTo(-1, 79); ctx.lineTo(4, 86); ctx.lineTo(1, 94); ctx.strokeStyle = '#382a22'; ctx.lineWidth = 2.5; ctx.stroke();
   // Clapper and the small bracket beneath the flared edge.
-  ctx.beginPath(); ctx.moveTo(0, 48); ctx.lineTo(0, 70); ctx.strokeStyle = '#483326'; ctx.lineWidth = 3; ctx.stroke(); ellipse(0, 72, 3, 4, '#493328');
+  const bellPhase = animationTimeMs % 5000;
+  const bellSwing = bellPhase < 760 ? Math.sin((bellPhase / 760) * Math.PI * 4) * 5 : 0;
+  ctx.beginPath(); ctx.moveTo(0, 48); ctx.lineTo(bellSwing, 70); ctx.strokeStyle = '#483326'; ctx.lineWidth = 3; ctx.stroke(); ellipse(bellSwing, 72, 3, 4, '#493328');
+  if (bellPhase < 760) {
+    ctx.beginPath(); ctx.arc(-20, 54, 9 + bellPhase / 75, -0.6, 0.6); ctx.arc(20, 54, 9 + bellPhase / 75, Math.PI - 0.6, Math.PI + 0.6);
+    ctx.strokeStyle = '#f0d49a'; ctx.lineWidth = 1.5; ctx.stroke();
+  }
   ctx.restore();
   // Philadelphia City Hall: a symmetrical red-brick base with a pale clock tower and dome.
   roundBox(205, 69, 70, 19, '#9d4f3c', 2, '#704034');
@@ -233,20 +247,48 @@ function drawAutumnMapBackground(): void {
 }
 function drawSign(index: number, x: number): void {
   // Sign boards intentionally contain no lettering, as requested.
-  roundBox(x - 4, 151, 8, 36, '#78482d', 3);
-  roundBox(x - 35, 133, 70, 28, '#ac6740', 7);
-  roundBox(x - 30, 137, 60, 18, '#d99056', 5, '#9b5b38');
+  const roadY = stopRoadY[index];
+  roundBox(x - 4, roadY - 31, 8, 31, '#78482d', 3);
+  roundBox(x - 35, roadY - 51, 70, 28, '#ac6740', 7);
+  roundBox(x - 30, roadY - 47, 60, 18, '#d99056', 5, '#9b5b38');
+}
+function selectMapStop(nextSelection: number): void {
+  const next = Math.max(0, Math.min(3, nextSelection));
+  if (next === selection) return;
+  mapWalkFrom = { x: mapWalkerX, y: mapWalkerY };
+  selection = next;
+  mapWalkTo = { x: stopX[selection] - 29, y: stopRoadY[selection] - 34 };
+  mapWalkProgress = 0;
+}
+function drawMenuAnimations(): void {
+  // Loop short pixel highlights across the river strip to suggest moving water.
+  const waterOffset = (animationTimeMs * 0.018) % 40;
+  for (let i = 0; i < 7; i++) {
+    const x = (i * 79 + waterOffset) % (WIDTH + 24) - 12;
+    const y = 5 + (i % 3) * 8;
+    rect(x, y, 10 + (i % 2) * 5, 2, i % 2 ? '#9bd4dc' : '#78b9cb');
+    rect(x + 4, y + 3, 5, 1, '#3d83a0');
+  }
+  // A handful of leaves drift down from the tree line at slightly different speeds.
+  const leafX = [37, 103, 181, 250, 322, 399, 466, 62, 359];
+  for (let i = 0; i < leafX.length; i++) {
+    const y = 26 + (animationTimeMs * (0.018 + (i % 3) * 0.003) + i * 37) % 150;
+    const x = leafX[i] + Math.sin(animationTimeMs * 0.002 + i) * 9;
+    ctx.save(); ctx.translate(x, y); ctx.rotate(Math.sin(animationTimeMs * 0.004 + i) * 0.5);
+    rect(-3, -2, 6, 4, i % 2 ? '#e7a83f' : '#c94c38'); rect(-1, -1, 2, 2, '#f4ce68'); ctx.restore();
+  }
 }
 function drawMap(): void {
   drawAutumnMapBackground();
-  // A dotted road links the three information stops to the playable arena.
+  drawMenuAnimations();
+  // The posts are anchored along the road's changing height.
   for (let i = 0; i < 3; i++) drawSign(i, stopX[i]);
   // The boss level is a large red destination marker instead of a fourth signpost.
-  ellipse(stopX[3], 150, 23, 23, '#d94a3e', '#fff0dc'); ellipse(stopX[3], 150, 12, 12, '#f1765d', '#a83531');
-  ellipse(stopX[3], 150, 4, 4, '#fff1d2', '#fff1d2');
+  ellipse(stopX[3], stopRoadY[3], 21, 21, '#d94a3e', '#fff0dc'); ellipse(stopX[3], stopRoadY[3], 11, 11, '#f1765d', '#a83531');
+  ellipse(stopX[3], stopRoadY[3], 4, 4, '#fff1d2', '#fff1d2');
   // The four map positions are one horizontal navigation row for the two arrow controls.
-  drawFootballer(stopX[selection] - 29, 170, 1.15);
-  for (let i = 0; i < 4; i++) if (i === selection) { rect(stopX[i] - 4, 185, 3, 3, '#ffe35b'); rect(stopX[i] + 1, 185, 3, 3, '#ffe35b'); }
+  drawFootballer(mapWalkerX, mapWalkerY, 1.15);
+  for (let i = 0; i < 4; i++) if (i === selection) { rect(stopX[i] - 4, stopRoadY[i] + 8, 3, 3, '#ffe35b'); rect(stopX[i] + 1, stopRoadY[i] + 8, 3, 3, '#ffe35b'); }
   text('◀  ▶ MOVE     ● SELECT', 240, 254, 8, '#fff');
 }
 function drawPopup(): void {
@@ -297,6 +339,7 @@ function action(): void {
   setHint();
 }
 function update(delta: number): void {
+  animationTimeMs += delta;
   if (scene === 'map') {
     const direction = (held.has('right') ? 1 : 0) - (held.has('left') ? 1 : 0);
     if (direction === 0) mapRepeatMs = 0;
@@ -304,9 +347,15 @@ function update(delta: number): void {
       mapRepeatMs += delta;
       // Trigger immediately, then repeat while held; no sub-step rounding can swallow taps.
       if (mapRepeatMs === delta || mapRepeatMs >= 220) {
-        selection = Math.max(0, Math.min(3, selection + direction));
+        selectMapStop(selection + direction);
         mapRepeatMs = 0;
       }
+    }
+    if (mapWalkProgress < 1) {
+      mapWalkProgress = Math.min(1, mapWalkProgress + delta / 190);
+      const eased = mapWalkProgress * mapWalkProgress * (3 - 2 * mapWalkProgress);
+      mapWalkerX = mapWalkFrom.x + (mapWalkTo.x - mapWalkFrom.x) * eased;
+      mapWalkerY = mapWalkFrom.y + (mapWalkTo.y - mapWalkFrom.y) * eased;
     }
   }
   if (scene === 'level') {
@@ -337,7 +386,7 @@ function bindHold(id: string, control: Control): void {
   const button = document.querySelector<HTMLButtonElement>(`#${id}`)!;
   button.addEventListener('pointerdown', (event: PointerEvent) => {
     event.preventDefault(); button.classList.add('pressed');
-    if (scene === 'map') { selection = Math.max(0, Math.min(3, selection + (control === 'right' ? 1 : -1))); return; }
+    if (scene === 'map') { selectMapStop(selection + (control === 'right' ? 1 : -1)); return; }
     held.add(control); button.setPointerCapture(event.pointerId);
   });
   const release = (): void => { held.delete(control); button.classList.remove('pressed'); };
