@@ -291,15 +291,22 @@ function drawMenuAnimations(): void {
     ctx.save(); ctx.translate(x, y); ctx.rotate(Math.sin(animationTimeMs * 0.004 + i) * 0.5);
     rect(-3, -2, 6, 4, i % 2 ? '#e7a83f' : '#c94c38'); rect(-1, -1, 2, 2, '#f4ce68'); ctx.restore();
   }
-  // The flyby window is 1.5–3.9 seconds of each five-second cycle; the bell rings at 0–0.9 seconds.
-  const eaglePhase = animationTimeMs % 5000;
-  if (eaglePhase >= 1500 && eaglePhase < 3900) drawEagle((eaglePhase - 1500) / 2400);
+  // Each slower flyby fits between bell rings at 15 and 20 seconds in the 25-second cycle.
+  const eagleCycle = Math.floor(animationTimeMs / 25000);
+  const eaglePhase = animationTimeMs % 25000;
+  const eagleStartMs = 16500;
+  const eagleDurationMs = 3200;
+  if (eaglePhase >= eagleStartMs && eaglePhase < eagleStartMs + eagleDurationMs) {
+    const progress = (eaglePhase - eagleStartMs) / eagleDurationMs;
+    const fromRight = eagleCycle % 2 === 0;
+    drawEagle(progress, fromRight, fromRight ? 25 : HEIGHT - 47);
+  }
 }
-function drawEagle(progress: number): void {
-  const x = -28 + progress * (WIDTH + 56);
-  const y = 27 + Math.sin(progress * Math.PI * 2) * 4;
+function drawEagle(progress: number, fromRight: boolean, y: number): void {
+  const x = fromRight ? WIDTH + 28 - progress * (WIDTH + 56) : -28 + progress * (WIDTH + 56);
+  const flightY = y + Math.sin(progress * Math.PI * 2) * 4;
   const wingBeat = Math.sin(animationTimeMs * 0.018) * 8;
-  ctx.save(); ctx.translate(x, y);
+  ctx.save(); ctx.translate(x, flightY); if (fromRight) ctx.scale(-1, 1);
   // A compact overhead eagle silhouette with flapping wings and a white head.
   ctx.fillStyle = '#493a32'; ctx.strokeStyle = '#2f2926'; ctx.lineWidth = 2;
   ctx.beginPath(); ctx.moveTo(-3, 0); ctx.quadraticCurveTo(-19, -7 - wingBeat, -28, -8 - wingBeat); ctx.lineTo(-20, 1); ctx.lineTo(-29, 4); ctx.quadraticCurveTo(-13, 8 + wingBeat, -3, 4); ctx.closePath(); ctx.fill(); ctx.stroke();
