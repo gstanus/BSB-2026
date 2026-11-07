@@ -118,20 +118,6 @@ function drawBoss(): void {
   // Draw Liam as a friendly cartoon opponent inspired by the supplied portrait.
   const x = boss.x, y = boss.y;
   ellipse(x + 22, y + 43, 21, 5, '#5a4937', '#5a4937');
-  // The bicycle sits behind Liam so the rider and readable shirt label stay clear.
-  ctx.strokeStyle = '#343a3d'; ctx.lineWidth = 2;
-  for (const wheelX of [x + 2, x + 42]) {
-    ctx.beginPath(); ctx.arc(wheelX, y + 40, 7, 0, Math.PI * 2); ctx.stroke();
-    ctx.beginPath(); ctx.arc(wheelX, y + 40, 1.2, 0, Math.PI * 2); ctx.fillStyle = '#d8d2c4'; ctx.fill();
-  }
-  ctx.strokeStyle = '#b84337'; ctx.lineWidth = 2.5; ctx.lineCap = 'round';
-  ctx.beginPath();
-  ctx.moveTo(x + 2, y + 40); ctx.lineTo(x + 17, y + 31); ctx.lineTo(x + 24, y + 40);
-  ctx.lineTo(x + 2, y + 40); ctx.moveTo(x + 17, y + 31); ctx.lineTo(x + 42, y + 40);
-  ctx.moveTo(x + 24, y + 40); ctx.lineTo(x + 42, y + 40); ctx.stroke();
-  ctx.strokeStyle = '#343a3d'; ctx.lineWidth = 2;
-  ctx.beginPath(); ctx.moveTo(x + 17, y + 31); ctx.lineTo(x + 14, y + 29); ctx.moveTo(x + 14, y + 29); ctx.lineTo(x + 19, y + 29);
-  ctx.moveTo(x + 42, y + 40); ctx.lineTo(x + 40, y + 29); ctx.lineTo(x + 44, y + 29); ctx.stroke();
   // Plaid overshirt, with broad intersecting lines that remain visible at phone scale.
   roundBox(x + 3, y + 24, 39, 20, '#8d998d', 7, '#3f4c47');
   ctx.save(); ctx.beginPath(); ctx.roundRect(x + 4, y + 25, 37, 18, 6); ctx.clip();
@@ -145,14 +131,6 @@ function drawBoss(): void {
   roundBox(x + 14, y + 28, 17, 15, '#ec824e', 3, '#b75736');
   roundBox(x + 9, y + 33, 27, 11, '#365858', 3, '#263c3c');
   text('LIAM', x + 22.5, y + 38.5, 10, '#ffffff');
-  // Foreground rims make the bicycle wheels visible beside Liam's legs and shirt.
-  ctx.strokeStyle = '#252b30'; ctx.lineWidth = 2;
-  for (const wheelX of [x + 2, x + 42]) {
-    ctx.beginPath(); ctx.arc(wheelX, y + 40, 7, 0, Math.PI * 2); ctx.stroke();
-    ctx.strokeStyle = '#c6c2b8'; ctx.lineWidth = 0.8;
-    ctx.beginPath(); ctx.moveTo(wheelX - 5, y + 40); ctx.lineTo(wheelX + 5, y + 40); ctx.moveTo(wheelX, y + 35); ctx.lineTo(wheelX, y + 45); ctx.stroke();
-    ctx.strokeStyle = '#252b30'; ctx.lineWidth = 2;
-  }
   // Face, ears, curly dark hair, eyes, and a broad friendly smile.
   ellipse(x + 22, y + 18, 13, 13, '#edbd91');
   ellipse(x + 9, y + 18, 3, 4, '#e2aa80'); ellipse(x + 35, y + 18, 3, 4, '#e2aa80');
