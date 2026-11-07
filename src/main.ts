@@ -51,6 +51,8 @@ let popupReturn: 'map' | 'level' = 'map';
 let mapRepeatMs = 0;
 let endFact = seasonFacts[0];
 let animationTimeMs = 0;
+let eagleCycleIndex = -1;
+let eagleFlightElapsedMs = 0;
 let mapWalkerX = stopX[0] - 29;
 let mapWalkerY = stopRoadY[0] - 34;
 let mapWalkFrom = { x: mapWalkerX, y: mapWalkerY };
@@ -291,13 +293,12 @@ function drawMenuAnimations(): void {
     ctx.save(); ctx.translate(x, y); ctx.rotate(Math.sin(animationTimeMs * 0.004 + i) * 0.5);
     rect(-3, -2, 6, 4, i % 2 ? '#e7a83f' : '#c94c38'); rect(-1, -1, 2, 2, '#f4ce68'); ctx.restore();
   }
-  // Each slower flyby fits between bell rings at 15 and 20 seconds in the 25-second cycle.
-  const eagleCycle = Math.floor(animationTimeMs / 25000);
-  const eaglePhase = animationTimeMs % 25000;
-  const eagleStartMs = 16500;
-  const eagleDurationMs = 3200;
-  if (eaglePhase >= eagleStartMs && eaglePhase < eagleStartMs + eagleDurationMs) {
-    const progress = (eaglePhase - eagleStartMs) / eagleDurationMs;
+  // Each 12-second flyby pauses during the bell's ring window to keep the animations separate.
+  const eagleCycle = Math.floor(animationTimeMs / 12000);
+  const eaglePhase = animationTimeMs % 12000;
+  const bellIsRinging = animationTimeMs % 5000 < 900;
+  if (eaglePhase >= 1500 && eagleFlightElapsedMs > 0 && eagleFlightElapsedMs < 3200 && !bellIsRinging) {
+    const progress = eagleFlightElapsedMs / 3200;
     const fromRight = eagleCycle % 2 === 0;
     drawEagle(progress, fromRight, fromRight ? 25 : HEIGHT - 47);
   }
@@ -391,6 +392,13 @@ function action(): void {
 }
 function update(delta: number): void {
   animationTimeMs += delta;
+  const currentEagleCycle = Math.floor(animationTimeMs / 12000);
+  if (currentEagleCycle !== eagleCycleIndex) { eagleCycleIndex = currentEagleCycle; eagleFlightElapsedMs = 0; }
+  const eagleCyclePhase = animationTimeMs % 12000;
+  const bellIsRinging = animationTimeMs % 5000 < 900;
+  if (eagleCyclePhase >= 1500 && eagleFlightElapsedMs < 3200 && !bellIsRinging) {
+    eagleFlightElapsedMs = Math.min(3200, eagleFlightElapsedMs + delta);
+  }
   if (scene === 'map') {
     const direction = (held.has('right') ? 1 : 0) - (held.has('left') ? 1 : 0);
     if (direction === 0) mapRepeatMs = 0;
