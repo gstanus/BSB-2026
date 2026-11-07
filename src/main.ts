@@ -55,7 +55,7 @@ function roundBox(x: number, y: number, w: number, h: number, color: string, rad
   ctx.beginPath(); ctx.roundRect(x, y, w, h, radius); ctx.fillStyle = color; ctx.fill(); ctx.lineWidth = 2; ctx.strokeStyle = stroke; ctx.stroke();
 }
 function text(value: string, x: number, y: number, size = 8, color = '#fff', align: CanvasTextAlign = 'center'): void {
-  ctx.font = `700 ${size}px system-ui, -apple-system, "Segoe UI", sans-serif`; ctx.textAlign = align; ctx.textBaseline = 'middle';
+  ctx.font = `700 ${size}px Silkscreen, monospace`; ctx.textAlign = align; ctx.textBaseline = 'middle';
   ctx.lineJoin = 'round'; ctx.lineWidth = 3; ctx.strokeStyle = '#392d2a'; ctx.strokeText(value, x, y); ctx.fillStyle = color; ctx.fillText(value, x, y);
 }
 function wrap(value: string, maxChars: number): string[] {
@@ -64,12 +64,18 @@ function wrap(value: string, maxChars: number): string[] {
   if (line) lines.push(line); return lines;
 }
 function background(): void {
-  const sky = ctx.createLinearGradient(0, 0, 0, HEIGHT); sky.addColorStop(0, '#8bd5e9'); sky.addColorStop(1, '#e4f0cc');
-  rect(0, 0, WIDTH, HEIGHT, '#8bd5e9'); ctx.fillStyle = sky; ctx.fillRect(0, 0, WIDTH, HEIGHT);
-  for (const [x, y] of [[42, 36], [235, 26], [390, 50]]) { ellipse(x, y, 24, 10, '#fffdf2', '#fffdf2'); ellipse(x + 14, y - 5, 18, 11, '#fffdf2', '#fffdf2'); }
-  rect(0, 170, WIDTH, 28, '#67ae57'); rect(0, 194, WIDTH, 76, '#e2c787');
-  roundBox(0, 188, WIDTH, 18, '#4d914c', 7, '#4d914c');
-  for (let x = 8; x < WIDTH; x += 30) { ellipse(x + 7, 222 + ((x / 30) % 2) * 10, 5, 4, '#bd8d54', '#bd8d54'); ellipse(x + 19, 238, 4, 3, '#bd8d54', '#bd8d54'); }
+  // A limited palette and layered tile bands give the title and arena a cozy pixel-farm feel.
+  rect(0, 0, WIDTH, HEIGHT, '#77b8d0');
+  for (let x = 0; x < WIDTH; x += 32) {
+    rect(x + 5, 31 + (x % 3) * 3, 24, 5, '#a3d6dd'); rect(x + 16, 25 + (x % 2) * 4, 13, 5, '#c5e6d7');
+  }
+  rect(0, 92, WIDTH, 88, '#6eaa57'); rect(0, 180, WIDTH, 90, '#bd8c55');
+  rect(0, 177, WIDTH, 9, '#437d49'); rect(0, 185, WIDTH, 5, '#91bc58');
+  // Subtle soil tile seams and grass flecks provide texture without crossing the play area.
+  for (let x = 0; x < WIDTH; x += 24) for (let y = 194; y < HEIGHT; y += 20) {
+    rect(x + (y % 2) * 5, y, 1, 12, '#a97549'); rect(x + 7, y + 5, 3, 2, '#d6ab69');
+  }
+  for (let x = 8; x < WIDTH; x += 34) { rect(x, 124 + (x % 3) * 5, 5, 3, '#b5d96b'); rect(x + 11, 156, 3, 2, '#d1df82'); }
 }
 function drawFootballer(x: number, y: number, scale = 1): void {
   ctx.save(); ctx.translate(x, y); ctx.scale(scale, scale);
@@ -139,27 +145,45 @@ function drawLandmark(index: number, x: number): void {
   }
 }
 function drawAutumnMapBackground(): void {
-  // Cozy top-down valley map with orchard plots, leafy canopies, and a winding farm path.
-  const grass = ctx.createLinearGradient(0, 0, 0, HEIGHT); grass.addColorStop(0, '#9acb6b'); grass.addColorStop(1, '#5d9d53');
-  ctx.fillStyle = grass; ctx.fillRect(0, 0, WIDTH, HEIGHT);
-  for (let y = 0; y < HEIGHT; y += 18) for (let x = 0; x < WIDTH; x += 24) {
-    if ((x / 24 + y / 18) % 3 === 0) roundBox(x + 3, y + 5, 5, 3, '#b6d982', 2, '#b6d982');
+  // A dense overhead autumn farm scene: blue water, golden ground, orchard, garden, and farmhouse.
+  rect(0, 0, WIDTH, HEIGHT, '#bd8249');
+  rect(0, 0, WIDTH, 31, '#4f91b2');
+  for (let x = 0; x < WIDTH; x += 17) { rect(x + 3, 4 + (x % 3), 8, 3, '#79b9ca'); rect(x + 10, 18 - (x % 2) * 4, 6, 2, '#357b9d'); }
+  // Pixel-stone shoreline and bank separate the river from the farm soil.
+  for (let x = 0; x < WIDTH; x += 12) { rect(x, 28 + (x % 4), 8, 4, '#6a493b'); rect(x + 4, 32 + (x % 3), 7, 3, '#d4a263'); }
+  rect(0, 36, WIDTH, HEIGHT - 36, '#b77c45');
+  for (let y = 39; y < HEIGHT; y += 16) for (let x = 0; x < WIDTH; x += 20) {
+    if ((x / 20 + y / 16) % 3 === 0) rect(x + 4, y + 3, 3, 2, '#d69a57');
+    if ((x / 20 + y / 16) % 5 === 0) rect(x + 12, y + 10, 2, 2, '#92613e');
   }
-  // Autumn orchard trees have visible trunks, layered crowns, and bright fallen leaves.
-  // Keep the trees above the road's upper edge so the trail never slices through their crowns.
-  for (const [x, y, c] of [[18, 59, '#bd4935'], [72, 110, '#e6a83b'], [155, 61, '#a84232'], [273, 104, '#dc8e34'], [348, 59, '#a84232'], [459, 106, '#d4a13b']] as Array<[number, number, string]>) {
-    roundBox(x - 4, y + 3, 8, 18, '#79502f', 3, '#694329');
-    ellipse(x, y - 1, 17, 14, '#326b42'); ellipse(x - 7, y - 5, 10, 10, c); ellipse(x + 6, y - 7, 11, 11, c); ellipse(x + 2, y + 2, 11, 9, c);
-    ellipse(x - 6, y - 7, 3, 2, '#f4d66d', '#f4d66d'); ellipse(x + 7, y + 1, 3, 2, '#f4d66d', '#f4d66d');
+  // Orchard trees stay clear of the path: each canopy is a layered pixel cluster above the trail.
+  for (const [x, y, leaf] of [[18, 69, '#a93831'], [73, 117, '#db812f'], [153, 65, '#b33a34'], [350, 66, '#a93533'], [459, 111, '#d28b32']] as Array<[number, number, string]>) {
+    rect(x - 4, y + 8, 8, 22, '#68442f'); rect(x - 2, y + 4, 5, 14, '#7c4c32');
+    rect(x - 18, y - 7, 12, 10, '#533a36'); rect(x - 12, y - 14, 14, 13, leaf); rect(x + 1, y - 13, 14, 13, leaf);
+    rect(x - 17, y - 1, 15, 11, leaf); rect(x - 4, y - 5, 17, 16, leaf); rect(x + 10, y - 2, 8, 10, leaf);
+    rect(x - 11, y - 9, 4, 3, '#f0b74e'); rect(x + 4, y + 1, 3, 3, '#f3c45b');
+    rect(x - 13, y + 11, 3, 2, '#8f5836'); rect(x + 8, y + 13, 3, 2, '#8f5836');
   }
-  // Small garden beds add the cultivated, storybook feel while leaving landmarks recognizable.
-  for (const [x, y] of [[105, 45], [286, 46], [375, 107], [100, 222], [290, 225]] as Array<[number, number]>) {
-    roundBox(x, y, 34, 18, '#80502f', 4, '#694329');
-    for (let i = 0; i < 4; i++) { ellipse(x + 7 + i * 7, y + 8, 3, 4, i % 2 ? '#6caa4e' : '#e57d4f', '#517845'); }
+  // Garden plots fill the lower corners with recognizable rows of crops and pumpkin patches.
+  for (const [x, y, color] of [[18, 207, '#69994a'], [60, 218, '#bd493b'], [378, 209, '#5c9848'], [423, 218, '#d27a2f']] as Array<[number, number, string]>) {
+    rect(x, y, 38, 30, '#82502f'); rect(x + 2, y + 3, 34, 2, '#bc8650');
+    for (let row = 0; row < 2; row++) for (let col = 0; col < 4; col++) {
+      const px = x + 5 + col * 8, py = y + 8 + row * 11;
+      rect(px + 2, py - 4, 2, 5, '#416f3b'); rect(px, py - 2, 6, 4, color);
+      rect(px + 1, py - 1, 2, 2, color === '#bd493b' || color === '#d27a2f' ? '#e6ad4d' : '#89ba54');
+    }
   }
-  // A pale dirt trail bends through the orchard and connects the three story markers to the level.
-  ctx.beginPath(); ctx.moveTo(-8, 165); ctx.bezierCurveTo(85, 143, 145, 206, 229, 179); ctx.bezierCurveTo(318, 150, 392, 196, 489, 163); ctx.lineTo(489, 202); ctx.bezierCurveTo(392, 226, 318, 180, 233, 209); ctx.bezierCurveTo(143, 238, 85, 178, -8, 213); ctx.closePath(); ctx.fillStyle = '#d7b77b'; ctx.fill();
-  ctx.beginPath(); ctx.moveTo(-8, 174); ctx.bezierCurveTo(86, 154, 145, 214, 230, 188); ctx.bezierCurveTo(318, 160, 392, 204, 489, 174); ctx.lineWidth = 2; ctx.strokeStyle = '#eed8a3'; ctx.stroke();
+  // Central farmhouse with a warm timber facade, roof tiles, windows, and porch.
+  rect(190, 108, 100, 57, '#68422f'); rect(195, 112, 90, 47, '#d69c56');
+  rect(186, 105, 108, 20, '#803b32'); rect(191, 100, 98, 14, '#a94a36'); rect(201, 96, 78, 9, '#bd5a3a');
+  for (let row = 0; row < 3; row++) for (let col = 0; col < 6; col++) rect(194 + col * 16 + (row % 2) * 7, 103 + row * 6, 11, 3, '#d27a47');
+  rect(207, 121, 16, 15, '#6c4938'); rect(210, 124, 10, 9, '#92c2d0'); rect(257, 121, 16, 15, '#6c4938'); rect(260, 124, 10, 9, '#92c2d0');
+  rect(231, 129, 17, 30, '#744633'); rect(234, 132, 11, 27, '#a96743');
+  rect(221, 159, 38, 5, '#785038'); rect(226, 153, 28, 6, '#bb8250');
+  // Winding pixel-edged dirt path links the signs; keep it clear of every tree canopy and crop bed.
+  ctx.beginPath(); ctx.moveTo(-8, 161); ctx.lineTo(45, 157); ctx.lineTo(97, 164); ctx.lineTo(148, 179); ctx.lineTo(204, 174); ctx.lineTo(257, 164); ctx.lineTo(312, 159); ctx.lineTo(369, 167); ctx.lineTo(430, 157); ctx.lineTo(488, 161);
+  ctx.lineTo(488, 198); ctx.lineTo(430, 196); ctx.lineTo(369, 205); ctx.lineTo(312, 197); ctx.lineTo(257, 202); ctx.lineTo(204, 211); ctx.lineTo(148, 215); ctx.lineTo(97, 198); ctx.lineTo(45, 194); ctx.lineTo(-8, 199); ctx.closePath(); ctx.fillStyle = '#d7b77b'; ctx.fill();
+  for (const [x, y] of [[34, 175], [93, 179], [145, 197], [288, 179], [347, 184], [411, 179]] as Array<[number, number]>) { rect(x, y, 7, 3, '#b18455'); rect(x + 14, y + 8, 5, 2, '#edcf91'); }
   // Draw the Liberty Bell with a wide wooden yoke, bronze body, and its famous crack.
   ctx.save(); ctx.translate(55, 15); ctx.scale(0.82, 0.82);
   // A broad, dark timber mount and two angled straps suspend the bell.
@@ -229,7 +253,7 @@ function drawPopup(): void {
   drawMap(); rect(48, 65, 384, 114, '#273755'); rect(53, 70, 374, 104, '#fff4ce');
   const lines = wrap(messages[selection], 35);
   lines.forEach((line, i) => {
-    ctx.font = '600 13px system-ui, -apple-system, "Segoe UI", sans-serif';
+    ctx.font = '400 13px Silkscreen, monospace';
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillStyle = '#253247';
     ctx.fillText(line, 240, 88 + i * 16, 350);
   });
@@ -251,7 +275,7 @@ function drawEnd(win: boolean): void {
   text('2026 NFL season fact', 240, win ? 120 : 107, 15, '#ffffff');
   const factLines = wrap(endFact, 44);
   factLines.slice(0, 3).forEach((line, index) => {
-    ctx.font = '600 13px system-ui, -apple-system, "Segoe UI", sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.font = '400 13px Silkscreen, monospace'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     ctx.fillStyle = '#ffffff'; ctx.fillText(line, 240, (win ? 141 : 129) + index * 16, 360);
   });
   text('Press ● to return to the map', 240, 190, 14, '#ffffff');

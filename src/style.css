@@ -1,4 +1,4 @@
-:root { color-scheme: dark; font-family: system-ui, -apple-system, "Segoe UI", sans-serif; background: #80523b; color: #fff; }
+:root { color-scheme: dark; font-family: Silkscreen, monospace; background: #80523b; color: #fff; }
 * { box-sizing: border-box; }
 html, body, #app { width: 100%; height: 100%; margin: 0; overflow: hidden; }
 body { touch-action: none; user-select: none; -webkit-user-select: none; }
