@@ -490,6 +490,22 @@ function bindHold(id: string, control: Control): void {
 }
 bindHold('left', 'left'); bindHold('right', 'right');
 document.querySelector<HTMLButtonElement>('#action')!.addEventListener('pointerdown', (event: PointerEvent) => { event.preventDefault(); action(); });
-window.addEventListener('keydown', (event: KeyboardEvent) => { if (event.key === 'ArrowLeft') held.add('left'); if (event.key === 'ArrowRight') held.add('right'); if ((event.key === ' ' || event.key === 'Enter') && !event.repeat) action(); });
-window.addEventListener('keyup', (event: KeyboardEvent) => { if (event.key === 'ArrowLeft') held.delete('left'); if (event.key === 'ArrowRight') held.delete('right'); });
+window.addEventListener('keydown', (event: KeyboardEvent) => {
+  if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
+    event.preventDefault();
+    const direction = event.key === 'ArrowRight' ? 1 : -1;
+    if (scene === 'map') {
+      // One key press advances exactly one stop, matching a single on-screen arrow tap.
+      if (!event.repeat) selectMapStop(selection + direction);
+      return;
+    }
+    held.add(direction > 0 ? 'right' : 'left');
+    return;
+  }
+  if ((event.key === ' ' || event.key === 'Enter') && !event.repeat) action();
+});
+window.addEventListener('keyup', (event: KeyboardEvent) => {
+  if (event.key === 'ArrowLeft') held.delete('left');
+  if (event.key === 'ArrowRight') held.delete('right');
+});
 setHint(); requestAnimationFrame(frame);
