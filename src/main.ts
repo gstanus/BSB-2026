@@ -11,6 +11,7 @@ canvas.height = HEIGHT;
 type Scene = 'title' | 'map' | 'message' | 'level' | 'win' | 'lose';
 type Control = 'left' | 'right';
 interface Actor { x: number; y: number; vx: number; vy: number; w: number; h: number; }
+interface FootballProjectile { x: number; y: number; vx: number; vy: number; }
 
 const messages: string[] = [
   'Geri leads by 1 in the overall series: 4-3',
@@ -40,6 +41,8 @@ let held = new Set<Control>();
 let player: Actor = { x: 58, y: 192, vx: 0, vy: 0, w: 24, h: 38 };
 let boss: Actor = { x: 365, y: 178, vx: -1.15, vy: 0, w: 44, h: 46 };
 let bossHits = 0;
+let bossThrowTimerMs = 0;
+let footballs: FootballProjectile[] = [];
 let jumpQueued = false;
 let lastTime = 0;
 let popupReturn: 'map' | 'level' = 'map';
@@ -132,6 +135,15 @@ function drawBoss(): void {
   ctx.beginPath(); ctx.moveTo(x + 16, y + 23); ctx.quadraticCurveTo(x + 22, y + 31, x + 29, y + 22); ctx.closePath(); ctx.fillStyle = '#753d36'; ctx.fill();
   roundBox(x + 17, y + 23, 11, 3, '#fff9e8', 1, '#fff9e8');
 }
+function drawFootball(projectile: FootballProjectile): void {
+  // Draw a small brown football with pale laces and end stripes, rotated along its flight.
+  const angle = Math.atan2(projectile.vy, projectile.vx);
+  ctx.save(); ctx.translate(projectile.x, projectile.y); ctx.rotate(angle);
+  ellipse(0, 0, 8, 4.5, '#9b542d', '#492d25');
+  ctx.strokeStyle = '#fff0d3'; ctx.lineWidth = 1.2;
+  ctx.beginPath(); ctx.moveTo(-3, 0); ctx.lineTo(3, 0); ctx.moveTo(-1, -2); ctx.lineTo(-1, 2); ctx.moveTo(1, -2); ctx.lineTo(1, 2); ctx.stroke();
+  ctx.restore();
+}
 function drawTitle(): void {
   background();
   rect(38, 56, 404, 88, '#183d70'); rect(43, 61, 394, 78, '#f3c84b');
@@ -193,10 +205,15 @@ function drawAutumnMapBackground(): void {
   ctx.lineTo(488, 198); ctx.lineTo(430, 196); ctx.lineTo(369, 205); ctx.lineTo(312, 197); ctx.lineTo(257, 202); ctx.lineTo(204, 211); ctx.lineTo(148, 215); ctx.lineTo(97, 198); ctx.lineTo(45, 194); ctx.lineTo(-8, 199); ctx.closePath(); ctx.fillStyle = '#d7b77b'; ctx.fill();
   for (const [x, y] of [[34, 175], [93, 179], [145, 197], [288, 179], [347, 184], [411, 179]] as Array<[number, number]>) { rect(x, y, 7, 3, '#b18455'); rect(x + 14, y + 8, 5, 2, '#edcf91'); }
   // Draw the Liberty Bell with a wide wooden yoke, bronze body, and its famous crack.
-  ctx.save(); ctx.translate(55, 15); ctx.scale(0.82, 0.82);
+  ctx.save(); ctx.translate(55, 15); ctx.scale(0.68, 0.68);
   // A broad, dark timber mount and two angled straps suspend the bell.
   roundBox(-48, 15, 96, 24, '#45312e', 5, '#302422');
   roundBox(-44, 8, 7, 9, '#68452a', 2); roundBox(-20, 8, 7, 9, '#68452a', 2); roundBox(14, 8, 7, 9, '#68452a', 2); roundBox(38, 8, 7, 9, '#68452a', 2);
+  // Keep the yoke fixed while the straps, bell, and clapper swing beneath it every five seconds.
+  const bellPhase = animationTimeMs % 5000;
+  const swingProgress = bellPhase / 900;
+  const bellAngle = bellPhase < 900 ? Math.sin(swingProgress * Math.PI * 4) * 0.2 * (1 - swingProgress) : 0;
+  ctx.save(); ctx.translate(0, 15); ctx.rotate(bellAngle); ctx.translate(0, -15);
   ctx.lineWidth = 5; ctx.strokeStyle = '#76542d'; ctx.beginPath(); ctx.moveTo(-26, 12); ctx.lineTo(-11, 52); ctx.moveTo(26, 12); ctx.lineTo(11, 52); ctx.stroke();
   // The bell widens toward its flared lip; layered strokes give it a clear metal edge.
   ctx.beginPath(); ctx.moveTo(-10, 39); ctx.lineTo(-13, 52); ctx.bezierCurveTo(-15, 69, -28, 82, -40, 91); ctx.quadraticCurveTo(0, 101, 40, 91); ctx.bezierCurveTo(28, 82, 15, 69, 13, 52); ctx.lineTo(10, 39); ctx.closePath();
@@ -205,13 +222,8 @@ function drawAutumnMapBackground(): void {
   // A dark, irregular line descends from the bell's shoulder to its broken rim.
   ctx.beginPath(); ctx.moveTo(1, 56); ctx.lineTo(-2, 65); ctx.lineTo(2, 72); ctx.lineTo(-1, 79); ctx.lineTo(4, 86); ctx.lineTo(1, 94); ctx.strokeStyle = '#382a22'; ctx.lineWidth = 2.5; ctx.stroke();
   // Clapper and the small bracket beneath the flared edge.
-  const bellPhase = animationTimeMs % 5000;
-  const bellSwing = bellPhase < 760 ? Math.sin((bellPhase / 760) * Math.PI * 4) * 5 : 0;
-  ctx.beginPath(); ctx.moveTo(0, 48); ctx.lineTo(bellSwing, 70); ctx.strokeStyle = '#483326'; ctx.lineWidth = 3; ctx.stroke(); ellipse(bellSwing, 72, 3, 4, '#493328');
-  if (bellPhase < 760) {
-    ctx.beginPath(); ctx.arc(-20, 54, 9 + bellPhase / 75, -0.6, 0.6); ctx.arc(20, 54, 9 + bellPhase / 75, Math.PI - 0.6, Math.PI + 0.6);
-    ctx.strokeStyle = '#f0d49a'; ctx.lineWidth = 1.5; ctx.stroke();
-  }
+  ctx.beginPath(); ctx.moveTo(0, 48); ctx.lineTo(0, 70); ctx.strokeStyle = '#483326'; ctx.lineWidth = 3; ctx.stroke(); ellipse(0, 72, 3, 4, '#493328');
+  ctx.restore();
   ctx.restore();
   // Philadelphia City Hall: a symmetrical red-brick base with a pale clock tower and dome.
   roundBox(205, 69, 70, 19, '#9d4f3c', 2, '#704034');
@@ -283,9 +295,22 @@ function drawMap(): void {
   drawMenuAnimations();
   // The posts are anchored along the road's changing height.
   for (let i = 0; i < 3; i++) drawSign(i, stopX[i]);
-  // The boss level is a large red destination marker instead of a fourth signpost.
-  ellipse(stopX[3], stopRoadY[3], 21, 21, '#d94a3e', '#fff0dc'); ellipse(stopX[3], stopRoadY[3], 11, 11, '#f1765d', '#a83531');
-  ellipse(stopX[3], stopRoadY[3], 4, 4, '#fff1d2', '#fff1d2');
+  // The boss level marker is a red badge with a gold trophy and a cheesesteak in its cup.
+  const trophyX = stopX[3], trophyY = stopRoadY[3];
+  ellipse(trophyX, trophyY, 22, 22, '#c93f36', '#fff0dc');
+  ellipse(trophyX, trophyY, 17, 17, '#e96548', '#9c302b');
+  // Gold cup and handles frame the sandwich like a prize inside the trophy.
+  rect(trophyX - 11, trophyY - 12, 3, 8, '#f3ca58'); rect(trophyX + 8, trophyY - 12, 3, 8, '#f3ca58');
+  rect(trophyX - 12, trophyY - 14, 4, 3, '#f3ca58'); rect(trophyX + 8, trophyY - 14, 4, 3, '#f3ca58');
+  rect(trophyX - 8, trophyY - 14, 16, 3, '#ffe17a');
+  rect(trophyX - 8, trophyY - 11, 16, 6, '#e8af3d'); rect(trophyX - 6, trophyY - 5, 12, 3, '#f3ca58');
+  // Cheesesteak: toasted roll, browned filling, and melted cheese visible above the cup rim.
+  rect(trophyX - 7, trophyY - 12, 14, 3, '#e9b66a');
+  rect(trophyX - 6, trophyY - 11, 12, 2, '#76402b');
+  rect(trophyX - 4, trophyY - 13, 8, 2, '#f6d25d');
+  rect(trophyX - 3, trophyY - 10, 6, 1, '#fff0b0');
+  rect(trophyX - 2, trophyY - 2, 4, 5, '#ffe17a'); rect(trophyX - 7, trophyY + 3, 14, 3, '#f3ca58');
+  rect(trophyX - 9, trophyY + 6, 18, 4, '#d99537'); rect(trophyX - 7, trophyY + 7, 14, 1, '#ffe17a');
   // The four map positions are one horizontal navigation row for the two arrow controls.
   drawFootballer(mapWalkerX, mapWalkerY, 1.15);
   for (let i = 0; i < 4; i++) if (i === selection) { rect(stopX[i] - 4, stopRoadY[i] + 8, 3, 3, '#ffe35b'); rect(stopX[i] + 1, stopRoadY[i] + 8, 3, 3, '#ffe35b'); }
@@ -307,7 +332,7 @@ function drawLevel(): void {
   rect(55, 162, 370, 10, '#397c45'); rect(55, 172, 370, 8, '#b08a56');
   // Three small lamps give the player a clear count of successful stomps.
   text('HITS', 240, 54, 6); for (let i = 0; i < 3; i++) { rect(216 + i * 17, 65, 10, 10, i < bossHits ? '#ffdc4d' : '#526274'); }
-  if (scene === 'level') { drawBoss(); drawFootballer(player.x, player.y); }
+  if (scene === 'level') { drawBoss(); for (const football of footballs) drawFootball(football); drawFootballer(player.x, player.y); }
   text('Hold ◀ ▶ to run   Tap ● to jump', 240, 252, 12, '#fff');
 }
 function drawEnd(win: boolean): void {
@@ -328,7 +353,7 @@ function setHint(): void {
   hint.textContent = scene === 'title' ? 'Tap the button to begin' : scene === 'map' ? 'Use arrows to choose a stop; button to select' : scene === 'message' ? 'Tap the button to close' : scene === 'level' ? 'Hold left/right to move; tap button to jump' : scene === 'win' || scene === 'lose' ? 'Press the button to return to the map' : '';
 }
 function startLevel(): void {
-  scene = 'level'; bossHits = 0; player = { x: 72, y: 124, vx: 0, vy: 0, w: 24, h: 38 }; boss = { x: 365, y: 130, vx: -1.15, vy: 0, w: 44, h: 46 };
+  scene = 'level'; bossHits = 0; bossThrowTimerMs = 0; footballs = []; player = { x: 72, y: 124, vx: 0, vy: 0, w: 24, h: 38 }; boss = { x: 365, y: 130, vx: -1.15, vy: 0, w: 44, h: 46 };
 }
 function action(): void {
   if (scene === 'title') scene = 'map';
@@ -366,6 +391,30 @@ function update(delta: number): void {
     if (player.y + player.h >= 162) { player.y = 162 - player.h; player.vy = 0; }
     boss.x += boss.vx * delta / 16.67;
     if (boss.x < 65 || boss.x + boss.w > 415) boss.vx *= -1;
+    // Liam starts throwing only after the player has landed two successful stomps.
+    if (bossHits >= 2) {
+      bossThrowTimerMs += delta;
+      if (bossThrowTimerMs >= 2300) {
+        bossThrowTimerMs = 0;
+        const launchX = boss.x + boss.w / 2;
+        const targetX = player.x + player.w / 2;
+        footballs.push({ x: launchX, y: boss.y + 25, vx: Math.max(-5, Math.min(5, (targetX - launchX) / 48)), vy: -3.8 });
+      }
+    }
+    const frameScale = delta / 16.67;
+    for (let i = footballs.length - 1; i >= 0; i--) {
+      const football = footballs[i];
+      football.x += football.vx * frameScale;
+      football.y += football.vy * frameScale;
+      football.vy += 0.14 * frameScale;
+      const hitPlayer = football.x + 7 > player.x && football.x - 7 < player.x + player.w && football.y + 5 > player.y && football.y - 5 < player.y + player.h;
+      if (hitPlayer) {
+        scene = 'lose'; endFact = seasonFacts[Math.floor(Math.random() * seasonFacts.length)]; setHint();
+        break;
+      }
+      if (football.x < -20 || football.x > WIDTH + 20 || football.y > HEIGHT + 20) footballs.splice(i, 1);
+    }
+    if (scene !== 'level') return;
     const overlapX = player.x + player.w > boss.x && player.x < boss.x + boss.w;
     const nearTop = player.y + player.h >= boss.y && player.y + player.h <= boss.y + 10;
     const overlapY = player.y + player.h > boss.y + 5 && player.y < boss.y + boss.h;
