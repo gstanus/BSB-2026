@@ -18,19 +18,21 @@ const messages: string[] = [
   'Both teams are competing for a playoff bye this year, so the stakes are higher than ever',
   'This years winner will receive [TBD] and eternal bragging rights. Can Geri protect his lead from the evil Liam?'
 ];
-// 2026 regular-season stats are current through the NFL pages' latest published game logs.
-const seasonFacts: string[] = [
-  'Jayden Daniels has thrown for 976 yards and 6 touchdowns in 2026.',
-  'James Cook has rushed for 707 yards in the 2026 season.',
-  'Bhayshul Tuten has 521 rushing yards and 4 rushing touchdowns in 2026.',
-  'Zay Flowers has caught passes for 608 yards and 3 touchdowns in 2026.',
-  'Rashee Rice has 243 receiving yards and 2 touchdowns this 2026 season.',
-  'Brock Bowers has 547 receiving yards and 5 touchdowns in 2026.',
-  'Drake Maye has thrown for 1,983 yards and 15 touchdowns in 2026.',
-  'Ollie Gordon has rushed for 408 yards and 4 touchdowns this season.',
-  'Jonathan Taylor has rushed for 610 yards and 8 touchdowns in 2026.',
-  'Chris Olave has 636 receiving yards in the 2026 season.',
-  'Jameson Williams has 437 receiving yards and 5 touchdowns in 2026.'
+// 2026 regular-season totals below reflect NFL.com player stats checked Nov 11, 2026.
+const winFacts: string[] = [
+  'Jayden Daniels has passed for 1,250 yards and 7 touchdowns in 2026.',
+  'James Cook has rushed for 814 yards and 8 touchdowns in 2026.',
+  'Bhayshul Tuten has rushed for 521 yards and 4 touchdowns in 2026.',
+  'Zay Flowers has 614 receiving yards and 3 touchdowns in 2026.',
+  'Rashee Rice has 292 receiving yards and 2 touchdowns in 2026.',
+  'Brock Bowers has 658 receiving yards and 6 touchdowns in 2026.'
+];
+const lossFacts: string[] = [
+  'Drake Maye has passed for 2,282 yards and 18 touchdowns in 2026.',
+  'Ollie Gordon has rushed for 463 yards and 4 touchdowns in 2026.',
+  'Jonathan Taylor has rushed for 656 yards and 8 touchdowns in 2026.',
+  'Chris Olave has 734 receiving yards and 2 touchdowns in 2026.',
+  'Jameson Williams has 468 receiving yards and 5 touchdowns in 2026.'
 ];
 const stopX = [105, 210, 315, 420];
 // Approximate centerline heights where each stop meets the winding trail.
@@ -49,7 +51,7 @@ let jumpQueued = false;
 let lastTime = 0;
 let popupReturn: 'map' | 'level' = 'map';
 let mapRepeatMs = 0;
-let endFact = seasonFacts[0];
+let endFact = winFacts[0];
 let animationTimeMs = 0;
 let eagleCycleIndex = -1;
 let eagleFlightElapsedMs = 0;
@@ -58,6 +60,11 @@ let mapWalkerY = stopRoadY[0] - 34;
 let mapWalkFrom = { x: mapWalkerX, y: mapWalkerY };
 let mapWalkTo = { x: mapWalkerX, y: mapWalkerY };
 let mapWalkProgress = 1;
+
+// Choose an outcome-specific fact so each result only uses its requested player group.
+function randomFact(facts: string[]): string {
+  return facts[Math.floor(Math.random() * facts.length)];
+}
 
 // Cartoon drawing helpers use smooth geometry and high-contrast outlines for clear shapes.
 function rect(x: number, y: number, w: number, h: number, color: string): void {
@@ -451,7 +458,7 @@ function update(delta: number): void {
       football.vy += 0.14 * frameScale;
       const hitPlayer = football.x + 7 > player.x && football.x - 7 < player.x + player.w && football.y + 5 > player.y && football.y - 5 < player.y + player.h;
       if (hitPlayer) {
-        scene = 'lose'; endFact = seasonFacts[Math.floor(Math.random() * seasonFacts.length)]; setHint();
+        scene = 'lose'; endFact = randomFact(lossFacts); setHint();
         break;
       }
       if (football.x < -20 || football.x > WIDTH + 20 || football.y > HEIGHT + 20) footballs.splice(i, 1);
@@ -466,8 +473,8 @@ function update(delta: number): void {
       if (Math.random() < 0.28) boss.vx *= -1;
       boss.vx = Math.sign(boss.vx || -1) * (0.85 + Math.random() * 1.1);
       bossTurnTimerMs = 0; bossNextTurnMs = 500 + Math.random() * 1200;
-      if (bossHits >= 3) { scene = 'win'; endFact = seasonFacts[Math.floor(Math.random() * seasonFacts.length)]; setHint(); }
-    } else if (overlapX && overlapY) { scene = 'lose'; endFact = seasonFacts[Math.floor(Math.random() * seasonFacts.length)]; setHint(); }
+      if (bossHits >= 3) { scene = 'win'; endFact = randomFact(winFacts); setHint(); }
+    } else if (overlapX && overlapY) { scene = 'lose'; endFact = randomFact(lossFacts); setHint(); }
   }
 }
 function frame(time: number): void {
