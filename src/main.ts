@@ -16,7 +16,7 @@ interface FootballProjectile { x: number; y: number; vx: number; vy: number; }
 const messages: string[] = [
   'Geri leads by 1 in the overall series: 4-3',
   'Both teams are competing for a playoff bye this year, so the stakes are higher than ever',
-  'This years winner will receive [TBD] and eternal bragging rights. Can Geri protect his lead from the evil Liam?'
+  "In addition to eternal bragging rights, this year's winner will be treated to dinner by the loser. Can Geri protect his lead from the evil Liam?"
 ];
 // 2026 regular-season totals below reflect NFL.com player stats checked Nov 11, 2026.
 const winFacts: string[] = [
