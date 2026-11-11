@@ -356,7 +356,8 @@ function drawPopup(): void {
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillStyle = '#253247';
     ctx.fillText(line, 240, 88 + i * 16, 350);
   });
-  text('Tap ● to close', 240, 158, 11, '#a7443d');
+  // Place the close prompt lower for the longer third-sign message.
+  text('Tap ● to close', 240, selection === 2 ? 166 : 158, 11, '#a7443d');
 }
 function drawLevel(): void {
   background();
